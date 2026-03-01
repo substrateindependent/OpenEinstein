@@ -704,3 +704,30 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: INSPIRE connector server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
   - Integration test: `tests/integration/test_inspire_connector.py` validates live literature search, author lookup, and citation export.
+
+## Task 4.4: Implement NASA ADS connector
+
+- Files Created:
+  - `src/openeinstein/tools/ads_server.py`
+  - `tests/unit/test_ads_server.py`
+  - `tests/integration/test_ads_connector.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+  - `tests/conftest.py` (load `.env` before key-dependent skip marker evaluation)
+- Interfaces Exposed:
+  - `ADSMCPServer` with tools: `search`, `citation_metrics`, `capabilities`
+  - Pydantic models: `ADSSearchArgs`, `ADSMetricsArgs`
+- Database Changes: none.
+- Config Changes:
+  - API-key tests now resolve credentials from repository `.env` (without overriding process env).
+- Depends On: Task 1.2 ToolBus contract, network connectivity, `ADS_API_KEY`.
+- Depended On By: literature-agent citation metrics and ranking features.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_ads_server.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_ads_connector.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: ADS connector server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
+  - Integration test: `tests/integration/test_ads_connector.py` validates live search and citation metrics lookup.
