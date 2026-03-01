@@ -888,3 +888,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: campaign lifecycle transitions are persisted and emitted through `CampaignStateMachine`.
   - Integration test: `tests/integration/test_campaign_state_integration.py` validates crash-close, restart, resume, and completion flow.
+
+## Task 5.3: Implement gate pipeline runner
+
+- Files Created:
+  - `src/openeinstein/campaigns/pipeline.py`
+  - `tests/unit/test_gate_pipeline.py`
+  - `tests/integration/test_gate_pipeline_integration.py`
+- Files Modified:
+  - `src/openeinstein/campaigns/__init__.py`
+- Interfaces Exposed:
+  - `GatePipelineRunner.select_backend/run_candidate/run_batch`
+  - Models: `GateExecutionResult`, `CandidateInput`
+- Database Changes:
+  - Uses `candidates` and `failure_log` tables for gate result persistence and failure classification.
+- Config Changes: none.
+- Depends On: Task 5.1 `GateConfig`, Task 1.3 persistence contract.
+- Depended On By: adaptive sampling engine and campaign execution loops.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_gate_pipeline.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_gate_pipeline_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: candidates execute sequential gate flows through `GatePipelineRunner` with capability-based backend routing.
+  - Integration test: `tests/integration/test_gate_pipeline_integration.py` validates batch execution routing and persistence side effects.

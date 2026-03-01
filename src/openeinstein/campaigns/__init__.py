@@ -19,6 +19,11 @@ from openeinstein.campaigns.state import (
     CampaignStateMachine,
     CandidateRecordResult,
 )
+from openeinstein.campaigns.pipeline import (
+    CandidateInput,
+    GateExecutionResult,
+    GatePipelineRunner,
+)
 
 __all__ = [
     "BackendTemplate",
@@ -34,4 +39,7 @@ __all__ = [
     "CampaignSnapshot",
     "CampaignStateMachine",
     "CandidateRecordResult",
+    "CandidateInput",
+    "GateExecutionResult",
+    "GatePipelineRunner",
 ]
