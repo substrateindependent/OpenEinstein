@@ -2,7 +2,7 @@
 
 This document tracks the live architecture of the repository.
 
-## Current State (Through Phase 6)
+## Current State (Through Phase 7)
 
 - Routing subsystem with logical role resolution (`reasoning`, `generation`, `fast`, `embeddings`) and fallback chains.
 - ToolBus subsystem with lifecycle-managed tool servers and CLI+JSON adapters.
@@ -43,6 +43,16 @@ This document tracks the live architecture of the repository.
   - Expanded operator commands (`init`, `results`, `export`, `config`, `sandbox explain`, `campaign clean`)
   - Pack listing/install flow and LaTeX build alias support
   - `report generate` command with markdown synthesis and optional LaTeX export
+- Phase 7 integration completion:
+  - First campaign pack (`modified-gravity-action-search`) with concrete skills/templates/evals/docs/seeds
+  - Known-model end-to-end truth-table validation
+  - Crash recovery coverage across campaign states
+  - Multi-provider routing equivalence campaign checks
+  - Persona eval suite (`evals/persona-baseline.yaml`) and threshold test coverage
+  - Security audit integration pass for scan/approvals/sandbox/compaction invariants
+  - Packaging hardening:
+    - MCP adapter console scripts (`openeinstein-mcp-*`)
+    - Clean-venv wheel/sdist install validation
 
 ## Key Boundaries
 
@@ -51,6 +61,6 @@ This document tracks the live architecture of the repository.
 - Policy validation and lifecycle control remain in gateway boundaries.
 - Domain-specific logic remains outside core modules.
 
-## Next Phase
+## Status
 
-Phase 7 finalizes first campaign pack execution and end-to-end integration validation.
+Sequential task execution from 0.1 through 7.7 is implemented and validated in-repo.

@@ -25,5 +25,6 @@ This index tracks the authoritative subsystem documents for OpenEinstein.
 - Phase 6 status: complete and validated via unit + integration coverage.
 - [Personality](./personality.md) - Implemented (Phase 2 pre-doc gate)
 - Phase 2 status: complete and validated via unit + integration coverage.
+- Phase 7 status: complete and validated through campaign-pack integration, persona/security audits, and packaging verification.
 
 Add each document before implementing the corresponding subsystem, then update it at the end of each phase boundary.

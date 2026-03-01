@@ -32,3 +32,10 @@
 - Implemented Phase 6 CLI surface expansion: workspace init, config validation, results/export, sandbox explain, pack list, campaign clean, and report generation commands.
 - Added report synthesis subsystem with markdown output sections and optional LaTeX export.
 - Hardened Wolfram integration skip behavior for unactivated local installs to match environment policy.
+- Reconciled missing Phase 3 audit artifact and extended the integration-contract ledger through Phase 7 tasks in progress.
+- Completed Phase 7:
+  - Implemented first production campaign pack (`modified-gravity-action-search`) with concrete templates, skills, literature seeds, and known-model eval fixtures.
+  - Added integration coverage for known-model E2E checks, crash recovery, multi-provider routing equivalence, persona evals, and security audits.
+  - Added configuration reference and campaign-pack authoring guide.
+  - Added MCP adapter console script entrypoints for registry/sympy/mathematica/cadabra/scanner/python-sandbox.
+  - Added clean-venv packaging validation from wheel and sdist artifacts.
