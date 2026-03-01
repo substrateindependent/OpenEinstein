@@ -24,6 +24,11 @@ from openeinstein.campaigns.pipeline import (
     GateExecutionResult,
     GatePipelineRunner,
 )
+from openeinstein.campaigns.sampling import (
+    AdaptiveSampler,
+    SamplingCandidate,
+    SamplingDecision,
+)
 
 __all__ = [
     "BackendTemplate",
@@ -42,4 +47,7 @@ __all__ = [
     "CandidateInput",
     "GateExecutionResult",
     "GatePipelineRunner",
+    "AdaptiveSampler",
+    "SamplingCandidate",
+    "SamplingDecision",
 ]

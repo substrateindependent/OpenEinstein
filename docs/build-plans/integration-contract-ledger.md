@@ -914,3 +914,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: candidates execute sequential gate flows through `GatePipelineRunner` with capability-based backend routing.
   - Integration test: `tests/integration/test_gate_pipeline_integration.py` validates batch execution routing and persistence side effects.
+
+## Task 5.4: Implement adaptive sampling engine
+
+- Files Created:
+  - `src/openeinstein/campaigns/sampling.py`
+  - `tests/unit/test_adaptive_sampling.py`
+  - `tests/integration/test_adaptive_sampling_integration.py`
+- Files Modified:
+  - `src/openeinstein/campaigns/__init__.py`
+- Interfaces Exposed:
+  - `AdaptiveSampler.reprioritize/reprioritize_keys`
+  - Models: `SamplingCandidate`, `SamplingDecision`
+- Database Changes:
+  - Consumes `failure_log` records as sampling signal input.
+- Config Changes: none.
+- Depends On: Task 5.2/5.3 failure persistence and candidate metadata contracts.
+- Depended On By: campaign execution loop scheduling and future dynamic queue management.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_adaptive_sampling.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_adaptive_sampling_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: adaptive sampler reprioritizes candidate keys from persisted failure patterns.
+  - Integration test: `tests/integration/test_adaptive_sampling_integration.py` validates deterministic ordering using DB failure logs.
