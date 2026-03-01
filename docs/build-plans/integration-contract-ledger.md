@@ -548,3 +548,30 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: Cadabra server executes tensor operations through ToolBus using live `cadabra2` CLI.
   - Integration test: `tests/integration/test_cadabra_mcp.py` validates expression execution and recovery flow.
+
+## Task 3.4: Implement template registry and backend mapping
+
+- Files Created:
+  - `src/openeinstein/campaigns/templates.py`
+  - `tests/unit/test_templates.py`
+  - `tests/integration/test_template_registry_integration.py`
+- Files Modified:
+  - `src/openeinstein/campaigns/__init__.py`
+  - `src/openeinstein/agents/computation.py`
+- Interfaces Exposed:
+  - `TemplateRegistry.register/load_directory/get/render/available_backends/validate_syntax`
+  - Models: `BackendTemplate`, `ComputeTemplate`, `TemplateDocument`
+- Database Changes: none.
+- Config Changes:
+  - Template documents support versioned backend-specific bodies with `{{var}}` placeholders.
+- Depends On: Task 2.5 computation agent and CAS backend tasks.
+- Depended On By: gate pipeline execution and multi-backend template routing.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_templates.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_template_registry_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: `ComputationAgent` resolves `template_id` through `TemplateRegistry` and rerenders for fallback backends.
+  - Integration test: `tests/integration/test_template_registry_integration.py` validates backend-specific fallback rendering.

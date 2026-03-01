@@ -9,6 +9,7 @@ from typing import Any, Callable
 from pydantic import BaseModel, Field
 
 from openeinstein.agents.base import OpenEinsteinAgent
+from openeinstein.campaigns import TemplateRegistry
 from openeinstein.tools import ToolResult
 
 
@@ -41,20 +42,22 @@ class ComputationAgent(OpenEinsteinAgent):
         cas_server: str,
         cas_tool: str,
         gate_sequence: list[GateFn],
+        template_registry: TemplateRegistry | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self._cas_server = cas_server
         self._cas_tool = cas_tool
         self._gate_sequence = gate_sequence
+        self._template_registry = template_registry
 
     def run(
         self,
         prompt: str,  # noqa: ARG002
         **kwargs: Any,
     ) -> dict[str, Any]:
-        template = str(kwargs["template"])
         variables = dict(kwargs.get("variables", {}))
+        template = self._resolve_template(variables, kwargs)
         timeout_seconds = float(kwargs.get("timeout_seconds", 10.0))
         fallback_server = kwargs.get("fallback_server")
         run_id = kwargs.get("run_id")
@@ -73,6 +76,13 @@ class ComputationAgent(OpenEinsteinAgent):
         active_result = primary
 
         if not primary.success and fallback_server:
+            if self._template_registry is not None and kwargs.get("template_id"):
+                rendered = self._template_registry.render(
+                    template_id=str(kwargs["template_id"]),
+                    backend=str(fallback_server),
+                    variables=variables,
+                )
+                args = {"expression": rendered}
             fallback = self._call_with_timeout(
                 server=str(fallback_server),
                 tool=self._cas_tool,
@@ -127,6 +137,20 @@ class ComputationAgent(OpenEinsteinAgent):
         if missing:
             raise KeyError(f"Missing template variables: {', '.join(sorted(set(missing)))}")
         return rendered
+
+    def _resolve_template(self, variables: dict[str, Any], kwargs: dict[str, Any]) -> str:
+        if kwargs.get("template_id"):
+            if self._template_registry is None:
+                raise ValueError("template_id provided but no template_registry configured")
+            return self._template_registry.render(
+                template_id=str(kwargs["template_id"]),
+                backend=self._cas_server,
+                variables=variables,
+            )
+        if "template" not in kwargs:
+            raise KeyError("Computation run requires 'template' or 'template_id'")
+        template = str(kwargs["template"])
+        return self.render_template(template, variables)
 
     def _call_with_timeout(
         self,
