@@ -375,3 +375,30 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: `OpenEinsteinAgent.build_bootstrap_context` injects persona/tools/policy and bounded skill context.
   - Integration test: `tests/integration/test_context_report_cli_integration.py` validates context reporting through CLI.
+
+## Task 2.4: Implement orchestrator with delegation and compaction
+
+- Files Created:
+  - `src/openeinstein/agents/orchestrator.py`
+  - `tests/unit/test_orchestrator.py`
+  - `tests/integration/test_orchestrator_integration.py`
+- Files Modified:
+  - `src/openeinstein/agents/__init__.py`
+- Interfaces Exposed:
+  - `AgentOrchestrator.execute(...)`
+  - `AgentOrchestrator.compact_with_invariants(...)`
+  - Models: `DelegatedTask`, `TaskResult`, `OrchestrationSummary`
+  - Scheduler protocol: `AdaptiveScheduler`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 2.3 base agent abstraction.
+- Depended On By: specialized computation/literature/verification agents and campaign execution pipeline.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_orchestrator.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_orchestrator_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: orchestrator executes bound subagents and returns aggregated output.
+  - Integration test: `tests/integration/test_orchestrator_integration.py` validates execution flow and failure handling.
