@@ -12,6 +12,7 @@ This index tracks the authoritative subsystem documents for OpenEinstein.
 - [Model Routing](./model-routing.md) - Implemented (Phase 1)
 - [Tool Bus](./tool-bus.md) - Implemented (Phase 1)
 - [Tracing and Evals](./tracing-and-evals.md) - Implemented (Phase 1)
+- Phase 1 status: complete and validated via unit + integration coverage.
 - campaign-engine.md
 - cas-backends.md
 - literature-infrastructure.md
