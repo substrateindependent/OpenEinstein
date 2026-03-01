@@ -26,3 +26,6 @@
 - Implemented Phase 4 literature + publishing stack: arXiv, Semantic Scholar, INSPIRE, ADS, CrossRef, Zotero, GROBID ingestion, and LaTeX toolchain/CLI.
 - Added canonical literature infrastructure documentation and expanded integration coverage for live connector roundtrips.
 - Updated test environment loading to read `.env` for local key-gated integration markers without overriding process env.
+- Implemented Phase 5 campaign engine primitives: campaign config loader, state machine with checkpoint/resume, gate pipeline runner, and adaptive sampling.
+- Added campaign-phase integration coverage for discovery/validation, crash-restart resume, capability-routed gate execution, and deterministic sampling order.
+- Added canonical campaign engine and CLI interface pre-doc updates with phase audit sign-off artifacts.

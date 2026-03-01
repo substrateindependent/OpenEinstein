@@ -2,7 +2,7 @@
 
 This document tracks the live architecture of the repository.
 
-## Current State (Through Phase 4)
+## Current State (Through Phase 5)
 
 - Routing subsystem with logical role resolution (`reasoning`, `generation`, `fast`, `embeddings`) and fallback chains.
 - ToolBus subsystem with lifecycle-managed tool servers and CLI+JSON adapters.
@@ -34,6 +34,11 @@ This document tracks the live architecture of the repository.
   - `ZoteroMCPServer`
   - `GrobidMCPServer`
   - `LatexToolchain` + `openeinstein latex` CLI surface
+- Campaign engine primitives:
+  - Campaign pack discovery and schema validation
+  - Campaign state machine with checkpoint/resume and idempotency controls
+  - Capability-routed gate pipeline with timeout/failure classification
+  - Adaptive sampling heuristics from persisted failure patterns
 
 ## Key Boundaries
 
@@ -44,4 +49,4 @@ This document tracks the live architecture of the repository.
 
 ## Next Phase
 
-Phase 5 adds the campaign engine state machine, capability-driven gate pipeline routing, and adaptive sampling loops.
+Phase 6 expands CLI and reporting surfaces around campaign execution and publication outputs.
