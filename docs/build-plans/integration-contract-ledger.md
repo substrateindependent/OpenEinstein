@@ -597,3 +597,25 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: scanner server executes numerical scans via ToolBus and emits plot artifacts.
   - Integration test: `tests/integration/test_scanner_mcp.py` validates known-function viability region and boundary detection.
+
+## Task 3.6: Implement sandboxed Python MCP server
+
+- Files Created:
+  - `src/openeinstein/tools/python_sandbox_server.py`
+  - `tests/integration/test_python_sandbox.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `PythonSandboxMCPServer` with tools: `execute`, `integrate`, `minimize`, `capabilities`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 1.2 ToolBus contract and scientific dependencies (`numpy`, `scipy`).
+- Depended On By: numerical evaluation paths and safety-audit flows.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_python_sandbox.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: sandbox server executes restricted code and numerical helpers via ToolBus.
+  - Integration test: `tests/integration/test_python_sandbox.py` validates execution output and forbidden-import blocking.

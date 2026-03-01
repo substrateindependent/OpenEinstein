@@ -1,6 +1,7 @@
 """Tool bus and server abstractions."""
 
 from openeinstein.tools.cadabra_server import CadabraMCPServer
+from openeinstein.tools.python_sandbox_server import PythonSandboxMCPServer
 from openeinstein.tools.scanner_server import ScannerMCPServer
 from openeinstein.tools.registry_server import CampaignRegistryServer
 from openeinstein.tools.mathematica_server import MathematicaMCPServer
@@ -23,6 +24,7 @@ __all__ = [
     "InMemoryToolServer",
     "MathematicaMCPServer",
     "MCPConnectionManager",
+    "PythonSandboxMCPServer",
     "ToolBus",
     "ToolBusError",
     "ToolResult",
