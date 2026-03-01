@@ -77,3 +77,36 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: gateway policy engine imports and validates `POLICY.json`.
   - Integration test: security tests use policy loader in tool call enforcement.
+
+## Task 1.1: Implement model routing layer
+
+- Files Created:
+  - `src/openeinstein/routing/models.py`
+  - `src/openeinstein/routing/router.py`
+  - `tests/unit/test_routing.py`
+  - `tests/integration/test_routing_integration.py`
+  - `docs/canonical/model-routing.md`
+- Files Modified:
+  - `src/openeinstein/routing/__init__.py`
+  - `docs/canonical/_index.md`
+  - `docs/canonical/core-architecture.md`
+  - `tests/integration/test_smoke_integration.py`
+  - `docs/canonical/tool-bus.md`
+  - `docs/canonical/tracing-and-evals.md`
+  - `docs/canonical/gateway-control-plane.md`
+- Interfaces Exposed:
+  - `ModelRouter.resolve(role: ModelRole) -> ModelConfig`
+  - `ModelRouter.resolve_with_fallback(role: ModelRole) -> list[ModelConfig]`
+  - `ModelRouter.run_with_fallback(role: ModelRole, call: Callable[[ModelConfig], T]) -> T`
+  - `load_routing_config(path) -> RoutingConfig`
+- Database Changes: none.
+- Config Changes: role-based routing config validation for `model_routing.roles`.
+- Depends On: Task 0.1.
+- Depended On By: agent base, orchestration, eval, and campaign execution tasks.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_routing.py -q`
+  - `.venv/bin/pytest tests/integration/test_routing_integration.py -q`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: router is importable from `openeinstein.routing`.
+  - Integration test: fallback path validated in `tests/integration/test_routing_integration.py`.

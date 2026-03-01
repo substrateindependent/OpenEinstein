@@ -8,14 +8,14 @@ This index tracks the authoritative subsystem documents for OpenEinstein.
 
 ## Planned Canonical Docs (Phase-Gated)
 
-- gateway-control-plane.md
-- model-routing.md
-- tool-bus.md
+- [Gateway Control Plane](./gateway-control-plane.md) - Implemented (Phase 1)
+- [Model Routing](./model-routing.md) - Implemented (Phase 1)
+- [Tool Bus](./tool-bus.md) - Implemented (Phase 1)
+- [Tracing and Evals](./tracing-and-evals.md) - Implemented (Phase 1)
 - campaign-engine.md
 - cas-backends.md
 - literature-infrastructure.md
 - multi-agent-orchestration.md
-- tracing-and-evals.md
 - security-model.md
 - cli-interface.md
 - personality.md
