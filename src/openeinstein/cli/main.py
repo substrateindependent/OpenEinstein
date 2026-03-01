@@ -12,6 +12,7 @@ from openeinstein import __version__
 from openeinstein.evals import EvalRunner, discover_eval_suites
 from openeinstein.gateway import FileBackedControlPlane
 from openeinstein.persistence import CampaignDB
+from openeinstein.security import ApprovalsStore, SecurityScanner
 from openeinstein.tracing import TraceStore
 
 app = typer.Typer(help="OpenEinstein control plane CLI")
@@ -32,6 +33,27 @@ app.add_typer(eval_app, name="eval")
 def version() -> None:
     """Print CLI version."""
     rprint(f"OpenEinstein {__version__}")
+
+
+@app.command("scan")
+def scan(
+    paths: list[Path] | None = typer.Argument(
+        None, help="Paths to scan for risky security patterns"
+    ),
+) -> None:
+    """Scan repository files for risky patterns."""
+    scan_targets = paths or [Path("configs"), Path("src"), Path("campaign-packs")]
+    scanner = SecurityScanner()
+    findings = scanner.scan_paths(scan_targets)
+    if not findings:
+        rprint("No risky patterns found.")
+        return
+    for finding in findings:
+        rprint(
+            f"{finding.severity.upper()} {finding.rule_id} "
+            f"{finding.path}:{finding.line} {finding.message}"
+        )
+    raise typer.Exit(code=1)
 
 
 @run_app.callback()
@@ -119,11 +141,41 @@ def pack_install(source: str) -> None:
 @approvals_app.command("list")
 def approvals_list() -> None:
     """List approval states."""
-    rprint("Approval state: [yellow]not implemented yet[/yellow]")
+    actions = _approvals_store().list()
+    if not actions:
+        rprint("No granted approvals.")
+        return
+    for action in actions:
+        rprint(action)
+
+
+@approvals_app.command("grant")
+def approvals_grant(action: str) -> None:
+    """Grant approval for an action."""
+    decision = _approvals_store().grant(action)
+    rprint(f"Granted approval for action: {decision.action}")
+
+
+@approvals_app.command("revoke")
+def approvals_revoke(action: str) -> None:
+    """Revoke approval for an action."""
+    decision = _approvals_store().revoke(action)
+    rprint(f"Revoked approval for action: {decision.action}")
+
+
+@approvals_app.command("reset")
+def approvals_reset() -> None:
+    """Reset approvals to default empty state."""
+    _approvals_store().reset()
+    rprint("Approvals reset.")
 
 
 def _db_path() -> Path:
     return Path(".openeinstein") / "openeinstein.db"
+
+
+def _approvals_store() -> ApprovalsStore:
+    return ApprovalsStore(Path(".openeinstein") / "approvals.json")
 
 
 def _control_plane() -> FileBackedControlPlane:

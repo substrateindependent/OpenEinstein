@@ -16,9 +16,9 @@ This index tracks the authoritative subsystem documents for OpenEinstein.
 - campaign-engine.md
 - cas-backends.md
 - literature-infrastructure.md
-- multi-agent-orchestration.md
-- security-model.md
+- [Multi-Agent Orchestration](./multi-agent-orchestration.md) - Implemented (Phase 2 pre-doc gate)
+- [Security Model](./security-model.md) - Implemented (Phase 2 pre-doc gate)
 - cli-interface.md
-- personality.md
+- [Personality](./personality.md) - Implemented (Phase 2 pre-doc gate)
 
 Add each document before implementing the corresponding subsystem, then update it at the end of each phase boundary.

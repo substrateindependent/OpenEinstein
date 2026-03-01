@@ -278,3 +278,37 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: registry server is registered with `MCPConnectionManager` and invoked through `ToolBus`.
   - Integration test: `tests/integration/test_registry_mcp.py` validates discovery + roundtrip CRUD + validation failure.
+
+## Task 2.1: Implement security subsystem
+
+- Files Created:
+  - `src/openeinstein/security/core.py`
+  - `tests/unit/test_security.py`
+  - `tests/integration/test_security_cli_integration.py`
+- Files Modified:
+  - `src/openeinstein/security/__init__.py`
+  - `src/openeinstein/cli/main.py`
+  - `docs/canonical/_index.md`
+  - `docs/canonical/security-model.md`
+  - `docs/canonical/multi-agent-orchestration.md`
+  - `docs/canonical/personality.md`
+- Interfaces Exposed:
+  - `ApprovalsStore`, `PolicyEngine`, `PolicyEnforcementHook`, `SecureToolGateway`
+  - `SecretRedactor`, `SecretsProvider`, `EnvFileSecretsProvider`, `KeyringSecretsProvider`
+  - `SecurityScanner`, `ScanFinding`
+  - `MetadataPinStore`, `ToolSandboxPolicy`
+  - CLI: `openeinstein approvals list|grant|revoke|reset`, `openeinstein scan`
+- Database Changes: none.
+- Config Changes:
+  - Enforces `configs/POLICY.json` invariants at runtime via `PolicyEngine`.
+- Depends On: Task 0.5 policy loader and Task 1.2 ToolBus.
+- Depended On By: hook system (Task 2.2), all guarded tool-call paths, later security audit tasks.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_security.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_security_cli_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: approvals and scan are exercised by CLI commands.
+  - Integration test: `tests/integration/test_security_cli_integration.py` validates approvals workflow and scan detection.
