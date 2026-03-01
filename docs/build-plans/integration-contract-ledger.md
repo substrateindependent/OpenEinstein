@@ -575,3 +575,25 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: `ComputationAgent` resolves `template_id` through `TemplateRegistry` and rerenders for fallback backends.
   - Integration test: `tests/integration/test_template_registry_integration.py` validates backend-specific fallback rendering.
+
+## Task 3.5: Implement scanner MCP server
+
+- Files Created:
+  - `src/openeinstein/tools/scanner_server.py`
+  - `tests/integration/test_scanner_mcp.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `ScannerMCPServer` with tools: `scan_grid`, `scan_adaptive`, `find_boundary`, `capabilities`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 1.2 ToolBus lifecycle and numerical dependencies (`numpy`, `matplotlib`).
+- Depended On By: adaptive sampling and campaign boundary-search workflows.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_scanner_mcp.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: scanner server executes numerical scans via ToolBus and emits plot artifacts.
+  - Integration test: `tests/integration/test_scanner_mcp.py` validates known-function viability region and boundary detection.
