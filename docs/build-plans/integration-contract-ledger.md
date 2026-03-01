@@ -110,3 +110,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: router is importable from `openeinstein.routing`.
   - Integration test: fallback path validated in `tests/integration/test_routing_integration.py`.
+
+## Task 1.2: Implement tool bus (MCP + CLI+JSON)
+
+- Files Created:
+  - `src/openeinstein/tools/types.py`
+  - `src/openeinstein/tools/tool_bus.py`
+  - `tests/unit/test_tool_bus.py`
+  - `tests/integration/test_tool_bus_mcp_roundtrip.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `ToolBus.get_tools(server_name: str) -> list[ToolSpec]`
+  - `ToolBus.call(server: str, tool: str, args: dict[str, Any], run_id: str | None = None) -> ToolResult`
+  - `MCPConnectionManager` lifecycle APIs
+  - `CLIJSONToolWrapper.call(payload) -> dict[str, Any]`
+- Database Changes: none.
+- Config Changes: MCP server mapping loader from YAML (`mcp_servers`).
+- Depends On: Task 1.1 (routing consumed by agents later).
+- Depended On By: agents, campaign engine, security hooks.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_tool_bus.py -q`
+  - `.venv/bin/pytest tests/integration/test_tool_bus_mcp_roundtrip.py -q`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: `ToolBus` exported via `openeinstein.tools`.
+  - Integration test: server lifecycle + roundtrip in `tests/integration/test_tool_bus_mcp_roundtrip.py`.
