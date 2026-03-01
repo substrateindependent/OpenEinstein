@@ -963,3 +963,34 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: users can initialize workspace, inspect runs, export results, diagnose sandbox blocks, and clean campaign data via CLI.
   - Integration test: `tests/integration/test_cli_commands.py` validates help output and functional command roundtrips.
+
+## Task 6.2: Implement report generation
+
+- Files Created:
+  - `src/openeinstein/reports/__init__.py`
+  - `src/openeinstein/reports/generator.py`
+  - `tests/unit/test_report_generation.py`
+  - `tests/integration/test_report_generation_integration.py`
+- Files Modified:
+  - `src/openeinstein/cli/main.py`
+  - `tests/conftest.py`
+  - `tests/integration/test_mathematica_mcp.py`
+- Interfaces Exposed:
+  - `CampaignReportGenerator.synthesize/to_markdown/write_markdown/export_latex`
+  - Models: `CampaignReport`, `ReportCandidate`
+  - CLI: `openeinstein report generate`
+- Database Changes:
+  - Consumes candidate/failure records from persistence for report synthesis.
+- Config Changes:
+  - None.
+- Depends On: Task 1.3 persistence, Task 6.1 CLI plumbing.
+- Depended On By: final campaign-pack validation and operator reporting workflows.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_report_generation.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_report_generation_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: CLI `report generate` synthesizes markdown/latex reports from persisted campaign data.
+  - Integration test: `tests/integration/test_report_generation_integration.py` validates markdown and LaTeX output generation.

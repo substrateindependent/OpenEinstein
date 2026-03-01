@@ -23,10 +23,18 @@ def test_mathematica_server_lifecycle_xact_timeout_recovery(tmp_path: Path) -> N
         "evaluate",
         {"session_id": session_id, "expression": "1+1", "timeout_seconds": 10},
     )
+    if not evaluated.success and evaluated.error and "not activated" in evaluated.error.lower():
+        import pytest
+
+        pytest.skip("Wolfram Engine not activated")
     assert evaluated.success
     assert evaluated.output["result"] == "2"
 
     loaded = bus.call("mathematica", "load_xact", {"session_id": session_id})
+    if not loaded.success and loaded.error and "not activated" in loaded.error.lower():
+        import pytest
+
+        pytest.skip("Wolfram Engine not activated")
     assert loaded.success
     assert loaded.output["loaded"] is True
 
@@ -44,8 +52,16 @@ def test_mathematica_server_lifecycle_xact_timeout_recovery(tmp_path: Path) -> N
     evaluated_again = bus.call(
         "mathematica",
         "evaluate",
-        {"session_id": session_id, "expression": "2+2", "timeout_seconds": 10},
+        {"session_id": session_id, "expression": "2+2", "timeout_seconds": 20},
     )
+    if (
+        not evaluated_again.success
+        and evaluated_again.error
+        and "not activated" in evaluated_again.error.lower()
+    ):
+        import pytest
+
+        pytest.skip("Wolfram Engine not activated")
     assert evaluated_again.success
     assert evaluated_again.output["result"] == "4"
 

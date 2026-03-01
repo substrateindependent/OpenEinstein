@@ -10,6 +10,7 @@ Or use directly as decorators:
 import importlib.util
 import os
 import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -32,13 +33,29 @@ def _load_repo_env() -> None:
 
 _load_repo_env()
 
+
+def _wolfram_available() -> bool:
+    if shutil.which("wolframscript") is None:
+        return False
+    try:
+        completed = subprocess.run(
+            ["wolframscript", "-code", "1+1"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except OSError:
+        return False
+    return completed.returncode == 0 and "2" in (completed.stdout or "")
+
 # ---------------------------------------------------------------------------
 # Skip markers for optional system dependencies
 # ---------------------------------------------------------------------------
 
 requires_wolfram = pytest.mark.skipif(
-    shutil.which("wolframscript") is None,
-    reason="Wolfram Engine not installed",
+    not _wolfram_available(),
+    reason="Wolfram Engine unavailable or not activated",
 )
 
 requires_npx = pytest.mark.skipif(

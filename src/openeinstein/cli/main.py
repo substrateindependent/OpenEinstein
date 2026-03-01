@@ -15,6 +15,7 @@ from openeinstein.campaigns import CampaignConfigLoader
 from openeinstein.evals import EvalRunner, discover_eval_suites
 from openeinstein.gateway import FileBackedControlPlane
 from openeinstein.persistence import CampaignDB
+from openeinstein.reports import CampaignReportGenerator
 from openeinstein.security import ApprovalsStore, SecurityScanner
 from openeinstein.skills import SkillRegistry
 from openeinstein.tools import LatexToolchain
@@ -30,6 +31,7 @@ context_app = typer.Typer(help="Context assembly utilities")
 latex_app = typer.Typer(help="LaTeX publishing toolchain commands")
 sandbox_app = typer.Typer(help="Sandbox diagnostics")
 campaign_app = typer.Typer(help="Campaign data management commands")
+report_app = typer.Typer(help="Campaign report synthesis commands")
 
 app.add_typer(run_app, name="run")
 app.add_typer(pack_app, name="pack")
@@ -40,6 +42,7 @@ app.add_typer(context_app, name="context")
 app.add_typer(latex_app, name="latex")
 app.add_typer(sandbox_app, name="sandbox")
 app.add_typer(campaign_app, name="campaign")
+app.add_typer(report_app, name="report")
 
 
 @app.command("version")
@@ -443,6 +446,30 @@ def campaign_clean(
         rprint(f"Removed run-scoped files for {run_id}.")
     else:
         rprint(f"No run-scoped files found for {run_id}.")
+
+
+@report_app.command("generate")
+def report_generate(
+    run_id: str = typer.Argument("latest"),
+    output: Path = typer.Option(Path("campaign-report.md"), "--output", "-o"),
+    latex_output: Path | None = typer.Option(
+        None,
+        "--latex-output",
+        help="Optional .tex export path",
+    ),
+) -> None:
+    """Generate a campaign report from persisted run data."""
+    db = CampaignDB(_db_path())
+    control = _control_plane()
+    resolved = _resolve_run_id(control, run_id)
+    generator = CampaignReportGenerator(db)
+    report = generator.synthesize(resolved)
+    markdown_path = generator.write_markdown(report, output)
+    rprint(f"Generated report: {markdown_path}")
+    if latex_output is not None:
+        latex_path = generator.export_latex(report, latex_output)
+        rprint(f"Generated LaTeX report: {latex_path}")
+    db.close()
 
 
 def _db_path() -> Path:
