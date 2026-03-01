@@ -1816,7 +1816,7 @@ dependencies = [
 langgraph = ["langgraph>=0.2"]
 pgvector = ["pgvector>=0.3", "psycopg2-binary>=2.9"]
 physbert = ["transformers>=4.40", "torch>=2.2"]
-cadabra = ["cadabra2>=2.4"]
+cadabra = []  # system dependency, runtime discovered via cadabra2 CLI
 jax = ["jax>=0.4", "jaxlib>=0.4"]
 latex = ["latexmk"]  # system dependency, marker only
 ```

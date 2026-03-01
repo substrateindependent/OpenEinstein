@@ -55,7 +55,7 @@ These components have full protocol/interface definitions and mock implementatio
 | Component | Phase | System Dependency | Skip Condition |
 |-----------|-------|-------------------|----------------|
 | Mathematica MCP server | 3.2 | Wolfram Engine + xAct | `shutil.which("wolframscript") is None` |
-| Cadabra MCP server | 3.3 | cadabra2 Python package | `importlib.util.find_spec("cadabra2") is None` |
+| Cadabra MCP server | 3.3 | cadabra2 runtime (`cadabra2` CLI) | `importlib.util.find_spec("cadabra2") is None and shutil.which("cadabra2") is None` |
 | arXiv MCP server (real API) | 4.1 | Node.js + npx | `shutil.which("npx") is None` or network unavailable |
 | Semantic Scholar MCP | 4.2 | S2_API_KEY env var | `os.getenv("S2_API_KEY") is None` |
 | INSPIRE-HEP connector | 4.3 | Network access | `OPENEINSTEIN_SKIP_NETWORK_TESTS` env var |
@@ -137,7 +137,7 @@ Put these in `tests/conftest.py` so every test file can import them.
 | LaTeX (texlive + latexmk) | LaTeX publishing | System install | Not in default CI |
 | Wolfram Engine | Mathematica MCP server | Wolfram installer + license | Not in CI |
 | xAct | Tensor algebra in Mathematica | Mathematica package manager | Not in CI |
-| Cadabra | Optional CAS | `pip install cadabra2` or system | Not in default CI |
+| Cadabra | Optional CAS | System install (`cadabra2` in `PATH`) | Not in default CI |
 
 ### CI environment (GitHub Actions)
 

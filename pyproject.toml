@@ -47,7 +47,8 @@ dev = [
 langgraph = ["langgraph>=0.2"]
 pgvector = ["pgvector>=0.3", "psycopg2-binary>=2.9"]
 physbert = ["transformers>=4.40", "torch>=2.2"]
-cadabra = ["cadabra2>=2.4"]
+# Cadabra is provided as a system dependency (CLI runtime), not via PyPI.
+cadabra = []
 jax = ["jax>=0.4", "jaxlib>=0.4"]
 latex = ["latexmk"]
 

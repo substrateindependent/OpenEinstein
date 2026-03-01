@@ -533,15 +533,21 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Files Modified:
   - `src/openeinstein/tools/__init__.py`
   - `tests/conftest.py`
+  - `BUILD-READY.md` (contract reconciliation)
+  - `pyproject.toml` (packaging reconciliation)
+  - `OpenEinstein-Implementation-Plan.md` (appendix reconciliation)
 - Interfaces Exposed:
   - `CadabraMCPServer` with tools: `create_session`, `evaluate`, `canonicalise`, `recover_session`, `close_session`, `capabilities`
 - Database Changes: none.
 - Config Changes:
   - Updated cadabra skip marker to allow CLI-runtime detection (`cadabra2` binary) in addition to Python module lookup.
+  - Reconciled dependency contract to treat Cadabra as a system CLI runtime (`cadabra2` in `PATH`) instead of a PyPI package.
+  - Updated optional extra `cadabra` to an empty marker extra so editable install remains valid.
 - Depends On: Task 1.2 ToolBus contract and local `cadabra2` runtime.
 - Depended On By: capability-first CAS routing and computation backend selection.
 - Verification Commands:
   - `.venv/bin/pytest tests/integration/test_cadabra_mcp.py --tb=short -q`
+  - `.venv/bin/pip install -e ".[dev]"`
   - `.venv/bin/pytest --tb=short -q`
   - `.venv/bin/ruff check src/ tests/`
   - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
