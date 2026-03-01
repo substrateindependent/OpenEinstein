@@ -38,8 +38,8 @@ requires_latex = pytest.mark.skipif(
 )
 
 requires_cadabra = pytest.mark.skipif(
-    importlib.util.find_spec("cadabra2") is None,
-    reason="cadabra2 Python package not installed",
+    importlib.util.find_spec("cadabra2") is None and shutil.which("cadabra2") is None,
+    reason="cadabra2 runtime not installed",
 )
 
 # ---------------------------------------------------------------------------

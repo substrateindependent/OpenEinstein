@@ -84,6 +84,16 @@ else
     info "latexmk installed"
 fi
 
+# --- Cadabra2 (tensor field theory CAS) ---
+if check cadabra2; then
+    info "cadabra2 $(cadabra2 --version 2>&1 | head -n1) already installed"
+else
+    warn "Installing Cadabra2 via Homebrew..."
+    brew tap kpeeters/repo 2>/dev/null || true
+    brew install cadabra2
+    info "cadabra2 installed"
+fi
+
 # --- Git ---
 if check git; then
     info "Git $(git --version | cut -d' ' -f3) already installed"
@@ -155,6 +165,7 @@ check npx        && info "npx:           available"                  || error "n
 check docker     && info "Docker:        installed"                  || error "Docker:        NOT FOUND"
 check latexmk    && info "latexmk:       installed"                  || error "latexmk:       NOT FOUND"
 check wolframscript && info "Wolfram:    installed"                  || warn  "Wolfram:       NOT INSTALLED (optional)"
+check cadabra2   && info "cadabra2:      $(cadabra2 --version 2>&1 | head -n1)" || warn "cadabra2:      NOT INSTALLED (optional)"
 check git        && info "Git:           $(git --version 2>&1 | cut -d' ' -f3)" || error "Git: NOT FOUND"
 
 echo ""

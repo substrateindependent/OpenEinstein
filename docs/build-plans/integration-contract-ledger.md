@@ -524,3 +524,27 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: Mathematica server executes through ToolBus with journaling and recovery hooks.
   - Integration test: `tests/integration/test_mathematica_mcp.py` validates evaluate/xAct/timeout/recovery lifecycle.
+
+## Task 3.3: Implement Cadabra MCP server
+
+- Files Created:
+  - `src/openeinstein/tools/cadabra_server.py`
+  - `tests/integration/test_cadabra_mcp.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+  - `tests/conftest.py`
+- Interfaces Exposed:
+  - `CadabraMCPServer` with tools: `create_session`, `evaluate`, `canonicalise`, `recover_session`, `close_session`, `capabilities`
+- Database Changes: none.
+- Config Changes:
+  - Updated cadabra skip marker to allow CLI-runtime detection (`cadabra2` binary) in addition to Python module lookup.
+- Depends On: Task 1.2 ToolBus contract and local `cadabra2` runtime.
+- Depended On By: capability-first CAS routing and computation backend selection.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_cadabra_mcp.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: Cadabra server executes tensor operations through ToolBus using live `cadabra2` CLI.
+  - Integration test: `tests/integration/test_cadabra_mcp.py` validates expression execution and recovery flow.
