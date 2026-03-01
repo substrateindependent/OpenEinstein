@@ -29,3 +29,6 @@
 - Implemented Phase 5 campaign engine primitives: campaign config loader, state machine with checkpoint/resume, gate pipeline runner, and adaptive sampling.
 - Added campaign-phase integration coverage for discovery/validation, crash-restart resume, capability-routed gate execution, and deterministic sampling order.
 - Added canonical campaign engine and CLI interface pre-doc updates with phase audit sign-off artifacts.
+- Implemented Phase 6 CLI surface expansion: workspace init, config validation, results/export, sandbox explain, pack list, campaign clean, and report generation commands.
+- Added report synthesis subsystem with markdown output sections and optional LaTeX export.
+- Hardened Wolfram integration skip behavior for unactivated local installs to match environment policy.

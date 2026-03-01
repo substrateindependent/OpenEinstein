@@ -2,7 +2,7 @@
 
 This document tracks the live architecture of the repository.
 
-## Current State (Through Phase 5)
+## Current State (Through Phase 6)
 
 - Routing subsystem with logical role resolution (`reasoning`, `generation`, `fast`, `embeddings`) and fallback chains.
 - ToolBus subsystem with lifecycle-managed tool servers and CLI+JSON adapters.
@@ -39,6 +39,10 @@ This document tracks the live architecture of the repository.
   - Campaign state machine with checkpoint/resume and idempotency controls
   - Capability-routed gate pipeline with timeout/failure classification
   - Adaptive sampling heuristics from persisted failure patterns
+- CLI and reporting surfaces:
+  - Expanded operator commands (`init`, `results`, `export`, `config`, `sandbox explain`, `campaign clean`)
+  - Pack listing/install flow and LaTeX build alias support
+  - `report generate` command with markdown synthesis and optional LaTeX export
 
 ## Key Boundaries
 
@@ -49,4 +53,4 @@ This document tracks the live architecture of the repository.
 
 ## Next Phase
 
-Phase 6 expands CLI and reporting surfaces around campaign execution and publication outputs.
+Phase 7 finalizes first campaign pack execution and end-to-end integration validation.

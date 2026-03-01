@@ -22,6 +22,7 @@ This index tracks the authoritative subsystem documents for OpenEinstein.
 - [Multi-Agent Orchestration](./multi-agent-orchestration.md) - Implemented (Phase 2 pre-doc gate)
 - [Security Model](./security-model.md) - Implemented (Phase 2 pre-doc gate)
 - [CLI Interface](./cli-interface.md) - Implemented (Phase 6 pre-doc gate)
+- Phase 6 status: complete and validated via unit + integration coverage.
 - [Personality](./personality.md) - Implemented (Phase 2 pre-doc gate)
 - Phase 2 status: complete and validated via unit + integration coverage.
 
