@@ -940,3 +940,26 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: adaptive sampler reprioritizes candidate keys from persisted failure patterns.
   - Integration test: `tests/integration/test_adaptive_sampling_integration.py` validates deterministic ordering using DB failure logs.
+
+## Task 6.1: Implement CLI
+
+- Files Created:
+  - `tests/integration/test_cli_commands.py`
+- Files Modified:
+  - `src/openeinstein/cli/main.py`
+- Interfaces Exposed:
+  - New CLI surfaces: `init`, `results`, `export`, `config`, `sandbox explain`, `pack list`, `campaign clean`
+  - Extended CLI surfaces: `pack install` local install path, `latex build` alias
+- Database Changes: none.
+- Config Changes:
+  - `config --validate` enforces presence of required top-level config keys.
+- Depends On: Tasks 1.x control plane/evals/tracing/security and Task 5 campaign primitives.
+- Depended On By: report generation commands and phase-7 operator workflows.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_cli_commands.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: users can initialize workspace, inspect runs, export results, diagnose sandbox blocks, and clean campaign data via CLI.
+  - Integration test: `tests/integration/test_cli_commands.py` validates help output and functional command roundtrips.

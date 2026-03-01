@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import typer
+import yaml  # type: ignore[import-untyped]
 from rich import print as rprint
 
 from openeinstein import __version__
+from openeinstein.campaigns import CampaignConfigLoader
 from openeinstein.evals import EvalRunner, discover_eval_suites
 from openeinstein.gateway import FileBackedControlPlane
 from openeinstein.persistence import CampaignDB
@@ -25,6 +28,8 @@ trace_app = typer.Typer(help="Trace inspection and export")
 eval_app = typer.Typer(help="Eval suite commands")
 context_app = typer.Typer(help="Context assembly utilities")
 latex_app = typer.Typer(help="LaTeX publishing toolchain commands")
+sandbox_app = typer.Typer(help="Sandbox diagnostics")
+campaign_app = typer.Typer(help="Campaign data management commands")
 
 app.add_typer(run_app, name="run")
 app.add_typer(pack_app, name="pack")
@@ -33,12 +38,41 @@ app.add_typer(trace_app, name="trace")
 app.add_typer(eval_app, name="eval")
 app.add_typer(context_app, name="context")
 app.add_typer(latex_app, name="latex")
+app.add_typer(sandbox_app, name="sandbox")
+app.add_typer(campaign_app, name="campaign")
 
 
 @app.command("version")
 def version() -> None:
     """Print CLI version."""
     rprint(f"OpenEinstein {__version__}")
+
+
+@app.command("init")
+def init_workspace(workspace: Path = typer.Option(Path(".openeinstein"), "--workspace")) -> None:
+    """Initialize local OpenEinstein workspace directories."""
+    workspace.mkdir(parents=True, exist_ok=True)
+    (workspace / "control-plane").mkdir(parents=True, exist_ok=True)
+    (workspace / "artifacts").mkdir(parents=True, exist_ok=True)
+    (workspace / "cache").mkdir(parents=True, exist_ok=True)
+    env_example = Path(".env.example")
+    if not env_example.exists():
+        env_example.write_text(
+            "\n".join(
+                [
+                    "ANTHROPIC_API_KEY=",
+                    "OPENAI_API_KEY=",
+                    "S2_API_KEY=",
+                    "ADS_API_KEY=",
+                    "ZOTERO_API_KEY=",
+                    "ZOTERO_USER_ID=",
+                    "CROSSREF_MAILTO=",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    rprint(f"Initialized workspace at {workspace}")
 
 
 @app.command("scan")
@@ -79,6 +113,63 @@ def run_start(campaign_path: Path = typer.Argument(..., exists=True)) -> None:
         f"Started run {run_id} for campaign {campaign_path}. "
         "Use `openeinstein run status <run_id>` to monitor progress."
     )
+
+
+@app.command("results")
+def results_summary(run_id: str = typer.Argument("latest")) -> None:
+    """Show candidate and failure summary for a run."""
+    db = CampaignDB(_db_path())
+    control = _control_plane()
+    resolved = _resolve_run_id(control, run_id)
+    candidates = db.get_candidates(resolved)
+    failures = db.get_failure_log(resolved)
+    rprint(
+        f"Run {resolved}: {len(candidates)} candidates, "
+        f"{len(failures)} failures"
+    )
+    db.close()
+
+
+@app.command("export")
+def export_results(
+    run_id: str = typer.Argument("latest"),
+    output: Path = typer.Option(Path("campaign-export.json"), "--output", "-o"),
+) -> None:
+    """Export candidate/failure data for a run to JSON."""
+    db = CampaignDB(_db_path())
+    control = _control_plane()
+    resolved = _resolve_run_id(control, run_id)
+    payload = {
+        "run_id": resolved,
+        "candidates": [row.__dict__ for row in db.get_candidates(resolved)],
+        "failures": [row.__dict__ for row in db.get_failure_log(resolved)],
+    }
+    output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    db.close()
+    rprint(f"Exported run {resolved} to {output}")
+
+
+@app.command("config")
+def config_command(
+    validate: bool = typer.Option(False, "--validate", help="Validate config shape"),
+    path: Path = typer.Option(
+        Path("configs/openeinstein.example.yaml"),
+        "--path",
+        help="Configuration file path",
+    ),
+) -> None:
+    """Show or validate a config file."""
+    if not path.exists():
+        raise typer.BadParameter(f"Config not found: {path}")
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not validate:
+        rprint(json.dumps(payload, indent=2, default=str))
+        return
+    if not isinstance(payload, dict):
+        raise typer.BadParameter("Config root must be a mapping")
+    if "model_routing" not in payload:
+        raise typer.BadParameter("Config missing required key: model_routing")
+    rprint(f"Config validation passed: {path}")
 
 
 @run_app.command("status")
@@ -141,7 +232,35 @@ def run_resume(run_id: str) -> None:
 @pack_app.command("install")
 def pack_install(source: str) -> None:
     """Install a campaign pack from a path or git URL."""
-    rprint(f"Installing campaign pack from {source}: [yellow]not implemented yet[/yellow]")
+    if source.startswith("http://") or source.startswith("https://"):
+        rprint(f"Remote install placeholder (manual clone required): {source}")
+        return
+    source_path = Path(source).resolve()
+    if not source_path.exists():
+        raise typer.BadParameter(f"Pack source does not exist: {source_path}")
+    if source_path.is_file():
+        source_path = source_path.parent
+    if not (source_path / "campaign.yaml").exists():
+        raise typer.BadParameter("Pack source must contain campaign.yaml")
+    destination_root = Path("campaign-packs")
+    destination_root.mkdir(parents=True, exist_ok=True)
+    destination = destination_root / source_path.name
+    shutil.copytree(source_path, destination, dirs_exist_ok=True)
+    rprint(f"Installed campaign pack to {destination}")
+
+
+@pack_app.command("list")
+def pack_list(
+    packs_root: Path = typer.Option(Path("campaign-packs"), "--packs-root"),
+) -> None:
+    """List available campaign packs."""
+    loader = CampaignConfigLoader(packs_root)
+    packs = loader.discover_packs()
+    if not packs:
+        rprint("No campaign packs discovered.")
+        return
+    for name, path in packs.items():
+        rprint(f"{name}: {path}")
 
 
 @approvals_app.command("list")
@@ -227,6 +346,7 @@ def latex_skeleton(
     rprint(f"Generated LaTeX skeleton: {path}")
 
 
+@latex_app.command("build")
 @latex_app.command("compile")
 def latex_compile(
     tex_file: Path = typer.Argument(..., exists=True, readable=True),
@@ -270,6 +390,59 @@ def latex_bibgen(
     entries = toolchain.entries_from_payload(payload)
     out_path = toolchain.generate_bibtex(entries, output_file=output)
     rprint(f"Generated BibTeX file: {out_path}")
+
+
+@sandbox_app.command("explain")
+def sandbox_explain(message: str = typer.Argument("")) -> None:
+    """Explain likely reasons a sandboxed action was blocked."""
+    msg = message.lower()
+    if "import os" in msg or "subprocess" in msg:
+        rprint("Blocked because subprocess/system-level imports are disallowed in sandbox mode.")
+        return
+    if "network" in msg or "socket" in msg:
+        rprint("Blocked because outbound network access is disabled for the sandbox.")
+        return
+    if message:
+        rprint(f"Sandbox block hint: {message}")
+        return
+    rprint("Provide an error message to diagnose sandbox policy blocks.")
+
+
+@campaign_app.command("clean")
+def campaign_clean(
+    run_id: str | None = typer.Option(None, "--run-id", help="Optional run id for partial cleanup"),
+    yes: bool = typer.Option(False, "--yes", help="Confirm destructive cleanup"),
+) -> None:
+    """Clean campaign data for isolation and reproducibility."""
+    if not yes:
+        raise typer.BadParameter("Pass --yes to confirm campaign cleanup.")
+
+    root = Path(".openeinstein")
+    if not root.exists():
+        rprint("No .openeinstein directory found.")
+        return
+
+    if run_id is None:
+        shutil.rmtree(root)
+        rprint("Removed .openeinstein workspace data.")
+        return
+
+    removed_any = False
+    for path in [
+        root / "artifacts" / run_id,
+        root / "control-plane" / "runs" / f"{run_id}.json",
+        root / "control-plane" / "events" / f"{run_id}.jsonl",
+    ]:
+        if path.exists():
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
+            removed_any = True
+    if removed_any:
+        rprint(f"Removed run-scoped files for {run_id}.")
+    else:
+        rprint(f"No run-scoped files found for {run_id}.")
 
 
 def _db_path() -> Path:
