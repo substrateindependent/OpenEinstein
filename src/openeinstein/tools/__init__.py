@@ -2,6 +2,7 @@
 
 from openeinstein.tools.cadabra_server import CadabraMCPServer
 from openeinstein.tools.arxiv_server import ArxivMCPServer
+from openeinstein.tools.semantic_scholar_server import SemanticScholarMCPServer
 from openeinstein.tools.python_sandbox_server import PythonSandboxMCPServer
 from openeinstein.tools.scanner_server import ScannerMCPServer
 from openeinstein.tools.registry_server import CampaignRegistryServer
@@ -21,6 +22,7 @@ from openeinstein.tools.types import ToolResult, ToolServer, ToolSpec
 __all__ = [
     "CadabraMCPServer",
     "ArxivMCPServer",
+    "SemanticScholarMCPServer",
     "CampaignRegistryServer",
     "CLIJSONToolWrapper",
     "InMemoryToolServer",

@@ -653,3 +653,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: arXiv tool server is registered in `MCPConnectionManager` and invoked through `ToolBus`.
   - Integration test: `tests/integration/test_arxiv_mcp.py` validates live search + PDF download.
+
+## Task 4.2: Integrate Semantic Scholar MCP
+
+- Files Created:
+  - `src/openeinstein/tools/semantic_scholar_server.py`
+  - `tests/unit/test_semantic_scholar_server.py`
+  - `tests/integration/test_semantic_scholar_mcp.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `SemanticScholarMCPServer` with tools: `search`, `get_paper`, `capabilities`
+  - Pydantic models: `SemanticScholarSearchArgs`, `SemanticScholarPaperArgs`
+- Database Changes: none.
+- Config Changes:
+  - Semantic Scholar integration supports API-key headers (`S2_API_KEY`) and keyless fallback behavior.
+- Depends On: Task 1.2 ToolBus contract and network connectivity.
+- Depended On By: literature-agent multi-source aggregation and citation-metric enrichment.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_semantic_scholar_server.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_semantic_scholar_mcp.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: Semantic Scholar tool server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
+  - Integration test: `tests/integration/test_semantic_scholar_mcp.py` validates live search and paper lookup with keyless probe fallback.
