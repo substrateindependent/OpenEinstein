@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "invariants": {
+    "require_approval_for": [
+      "shell_exec",
+      "network_fetch",
+      "file_write_outside_workspace"
+    ],
+    "max_llm_calls_per_step": 50,
+    "max_cas_timeout_minutes": 60,
+    "forbidden_operations": [
+      "delete_campaign_state",
+      "modify_other_campaigns"
+    ],
+    "require_verification_after_gates": true
+  },
+  "enforced_by": "gateway",
+  "note": "Gateway checks these invariants before every tool call; the LLM cannot override this policy."
+}

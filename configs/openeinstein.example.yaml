@@ -1,0 +1,72 @@
+model_routing:
+  roles:
+    reasoning:
+      description: Complex reasoning and synthesis
+      default:
+        provider: anthropic
+        model: claude-opus-4-6
+        params:
+          extended_thinking: true
+          budget_tokens: 32000
+      fallback:
+        provider: openai
+        model: o3
+
+    generation:
+      description: Code generation and routine orchestration
+      default:
+        provider: anthropic
+        model: claude-sonnet-4-5
+      fallback:
+        provider: openai
+        model: gpt-4.1
+
+    fast:
+      description: Classification and simple extraction
+      default:
+        provider: anthropic
+        model: claude-haiku-4-5
+      fallback:
+        provider: openai
+        model: gpt-4.1-mini
+
+    embeddings:
+      description: Embeddings for literature retrieval
+      default:
+        provider: local
+        model: physbert-base
+      fallback:
+        provider: openai
+        model: text-embedding-3-large
+
+hooks:
+  - name: audit_logger
+    event: after_tool_call
+    handler: openeinstein.hooks.audit:log_tool_call
+
+  - name: approval_gate
+    event: before_tool_call
+    handler: openeinstein.hooks.security:check_approval
+    config:
+      require_approval_for:
+        - shell_exec
+        - network_fetch
+        - file_write_outside_workspace
+
+mcp_servers:
+  sympy:
+    type: stdio
+    command: openeinstein-mcp-sympy
+    sandbox:
+      network: none
+      workspace_access: rw
+    required: true
+
+  arxiv:
+    type: stdio
+    command: npx
+    args: ["-y", "@blazickjp/arxiv-mcp-server"]
+    sandbox:
+      network: allow
+      workspace_access: none
+    required: true

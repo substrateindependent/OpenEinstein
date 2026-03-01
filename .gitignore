@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.build/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+
+# Virtual environments
+.venv/
+venv/
+
+# OS
+.DS_Store
+
+# Tooling and runtime state
+.openeinstein/
+.openeinstein-testcount-baseline
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment secrets
+.env
+.env.*
+!.env.example

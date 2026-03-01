@@ -1,0 +1,49 @@
+campaign:
+  name: Action Search
+  version: "1.0"
+  description: >
+    Systematically explore candidate actions in a gravitational theory,
+    filtering through reduction, perturbation analysis, and stability gates.
+
+  search_space:
+    generator_skill: action-taxonomy
+    estimated_candidates: 200-500
+
+  gate_pipeline:
+    - name: Cosmological Reduction
+      skill: cosmology-reduction
+      cas_requirements: [tensor_simplify, vary_action]
+      timeout_minutes: 30
+
+    - name: Perturbation Expansion
+      skill: perturbation-analysis
+      cas_requirements: [perturbation_expansion]
+      timeout_minutes: 60
+
+    - name: Stability Analysis
+      skill: stability-analysis
+      cas_requirements: [stability_analysis]
+      timeout_minutes: 30
+
+    - name: Literature Cross-Reference
+      skill: literature-xref
+
+  adaptive_sampling:
+    enabled: true
+    batch_size: 10
+    prioritization:
+      - distance_from_successes
+      - absence_of_shared_failures
+      - simplicity
+
+  success_criteria:
+    min_viable_candidates: 1
+    require_failure_map: true
+    require_notebooks: true
+    require_next_steps_doc: true
+
+  resources:
+    agent_mode: multi
+    max_parallel_computation: 3
+    model_budget_usd: 200
+    cas_timeout_per_candidate_min: 30

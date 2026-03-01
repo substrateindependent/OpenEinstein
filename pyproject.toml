@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openeinstein"
+version = "0.1.0"
+description = "Open-source AI physicist agent platform"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+  { name = "OpenEinstein Contributors" }
+]
+keywords = ["ai", "agents", "physics", "mcp", "research"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+  "pydantic>=2.0",
+  "pydantic-ai>=0.1",
+  "litellm>=1.0",
+  "mcp>=1.0",
+  "typer>=0.12",
+  "rich>=13.0",
+  "pyyaml>=6.0",
+  "sqlalchemy>=2.0",
+  "numpy>=1.26",
+  "scipy>=1.12",
+  "matplotlib>=3.8",
+  "sympy>=1.12",
+  "opentelemetry-api>=1.20",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "ruff>=0.4",
+  "mypy>=1.10",
+]
+langgraph = ["langgraph>=0.2"]
+pgvector = ["pgvector>=0.3", "psycopg2-binary>=2.9"]
+physbert = ["transformers>=4.40", "torch>=2.2"]
+cadabra = ["cadabra2>=2.4"]
+jax = ["jax>=0.4", "jaxlib>=0.4"]
+latex = ["latexmk"]
+
+[project.urls]
+Homepage = "https://github.com/open-einstein/openeinstein"
+Documentation = "https://github.com/open-einstein/openeinstein/tree/main/docs"
+Repository = "https://github.com/open-einstein/openeinstein"
+Issues = "https://github.com/open-einstein/openeinstein/issues"
+
+[project.scripts]
+openeinstein = "openeinstein.cli.main:app"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"

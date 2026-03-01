@@ -1,0 +1,23 @@
+campaign:
+  name: modified-gravity-action-search
+  version: "0.1.0"
+  description: Modified gravity action search campaign pack scaffold.
+
+  search_space:
+    generator_skill: action-taxonomy
+
+  gate_pipeline:
+    - name: Cosmological Reduction
+      skill: cosmology-reduction
+      cas_requirements: [tensor_simplify, vary_action]
+
+    - name: Perturbation Analysis
+      skill: perturbation-analysis
+      cas_requirements: [perturbation_expansion]
+
+    - name: Stability Analysis
+      skill: stability-analysis
+      cas_requirements: [stability_analysis]
+
+    - name: Literature Xref
+      skill: literature-xref
