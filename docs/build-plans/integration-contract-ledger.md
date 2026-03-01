@@ -1139,3 +1139,36 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: `SecureToolGateway` enforces policy approvals/forbidden operations, `PythonSandboxMCPServer` blocks forbidden imports, and orchestrator compaction retains policy invariant tokens.
   - Integration test: `tests/integration/test_security_audit.py` asserts scan findings, approval/violation behavior, sandbox blocks, and invariant preservation.
+
+## Task 7.7: Documentation and packaging
+
+- Files Created:
+  - `src/openeinstein/tools/mcp_entrypoints.py`
+  - `tests/integration/test_packaging_install.py`
+  - `docs/configuration-reference.md`
+  - `docs/campaign-pack-authoring.md`
+- Files Modified:
+  - `README.md`
+  - `pyproject.toml`
+- Interfaces Exposed:
+  - Console script entrypoints:
+    - `openeinstein-mcp-registry`
+    - `openeinstein-mcp-sympy`
+    - `openeinstein-mcp-mathematica`
+    - `openeinstein-mcp-cadabra`
+    - `openeinstein-mcp-scanner`
+    - `openeinstein-mcp-python-sandbox`
+- Database Changes: none.
+- Config Changes:
+  - Packaging metadata now publishes MCP adapter script entrypoints.
+- Depends On: prior tooling/CLI subsystem implementations and Phase 7 campaign/eval deliverables.
+- Depended On By: final artifact install validation and operator quickstart onboarding.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_packaging_install.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+  - `.venv/bin/pip install -e ".[dev]"`
+- Consumption Proof:
+  - Runtime path: installed console scripts expose MCP adapters and CLI workflows in clean virtualenv installs.
+  - Integration test: `tests/integration/test_packaging_install.py` builds wheel/sdist and validates clean-venv install + command surface.

@@ -43,6 +43,7 @@ dev = [
   "pytest-cov>=5.0",
   "ruff>=0.4",
   "mypy>=1.10",
+  "build>=1.2",
 ]
 langgraph = ["langgraph>=0.2"]
 pgvector = ["pgvector>=0.3", "psycopg2-binary>=2.9"]
@@ -60,6 +61,12 @@ Issues = "https://github.com/open-einstein/openeinstein/issues"
 
 [project.scripts]
 openeinstein = "openeinstein.cli.main:app"
+openeinstein-mcp-registry = "openeinstein.tools.mcp_entrypoints:registry_cli"
+openeinstein-mcp-sympy = "openeinstein.tools.mcp_entrypoints:sympy_cli"
+openeinstein-mcp-mathematica = "openeinstein.tools.mcp_entrypoints:mathematica_cli"
+openeinstein-mcp-cadabra = "openeinstein.tools.mcp_entrypoints:cadabra_cli"
+openeinstein-mcp-scanner = "openeinstein.tools.mcp_entrypoints:scanner_cli"
+openeinstein-mcp-python-sandbox = "openeinstein.tools.mcp_entrypoints:python_sandbox_cli"
 
 [tool.setuptools]
 package-dir = { "" = "src" }

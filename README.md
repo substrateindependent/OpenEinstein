@@ -1,63 +1,59 @@
 # OpenEinstein
 
-OpenEinstein is an open-source AI physicist agent platform for running reproducible research campaigns locally.
+OpenEinstein is a local-first AI research platform for reproducible theoretical-physics campaigns.
 
-This repository is bootstrapped for the architecture described in `OpenEinstein-Implementation-Plan.md`, with setup conventions aligned to `Development Resources/Repo-Setup-Best-Practices.md`.
-
-## Current Status
-
-Phase 0 (repository bootstrap) scaffold is implemented:
-- Python package layout for core platform subsystems
-- CLI entrypoint and command groups
-- Test harness and CI workflow
-- Canonical docs, trust model, policy invariants, and persona seed
-- Campaign pack and config scaffolding
-
-## Tech Stack (Planned Baseline)
-
-- Python 3.12+
-- Pydantic + PydanticAI
-- LiteLLM model routing
-- MCP SDK integration
-- Typer CLI
-- SQLite persistence
-- OpenTelemetry-compatible tracing
+The core platform is domain-agnostic and safety-enforced. Domain specifics live in Campaign Packs under `campaign-packs/`.
 
 ## Quickstart
 
-1. Create a Python 3.12+ virtual environment.
-2. Install editable package:
-
 ```bash
-python -m pip install -e ".[dev]"
-```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
 
-3. Run tests:
+pytest --tb=short -q
+ruff check src/ tests/
+mypy src/openeinstein/ --ignore-missing-imports
 
-```bash
-pytest
-```
-
-4. View CLI help:
-
-```bash
 openeinstein --help
+openeinstein config --validate --path configs/openeinstein.example.yaml
+openeinstein eval list
+openeinstein pack list
 ```
 
-## Repository Overview
+## Core Architecture Rules
 
-- `src/openeinstein/`: platform code (gateway, routing, tools, campaigns, tracing, security, CLI)
-- `tests/`: unit, integration, eval, and campaign test suites
-- `campaign-packs/`: installable campaign pack content bundles
-- `configs/`: example runtime config and machine-enforced policy
-- `docs/`: canonical docs, plans, architecture, decisions, and audits
+- Route model selection through logical roles: `reasoning`, `generation`, `fast`, `embeddings`.
+- Route tool execution through `ToolBus` abstractions (no direct MCP/subprocess calls in agent/campaign logic).
+- Enforce machine policy through `configs/POLICY.json` at gateway boundaries.
+- Keep physics-subfield logic out of core modules; put it in Campaign Packs.
 
-## Design Constraints
+## First Campaign Pack
 
-- No hardcoded model names in implementation code. Use logical model roles.
-- No direct provider API calls from features/agents. Route through framework abstractions.
-- All tool access routes through the ToolBus abstraction.
-- Safety constraints are machine-enforced by `configs/POLICY.json`.
+- Pack path: `campaign-packs/modified-gravity-action-search/`
+- Includes: campaign config, skills, templates, known-model eval fixture, literature seed, and docs.
+- Validate and dry-run:
+
+```bash
+openeinstein config --validate --path campaign-packs/modified-gravity-action-search/campaign.yaml
+pytest tests/integration/test_modified_gravity_pack.py --tb=short -q
+```
+
+## Documentation
+
+- Architecture overview: `docs/ARCHITECTURE.md`
+- Canonical subsystem docs: `docs/canonical/`
+- Trust model: `docs/trust-model.md`
+- Configuration reference: `docs/configuration-reference.md`
+- Campaign Pack authoring guide: `docs/campaign-pack-authoring.md`
+
+## Repository Layout
+
+- `src/openeinstein/`: platform code (routing, tools, gateway, agents, campaigns, persistence, tracing, evals, CLI)
+- `tests/`: unit, integration, and eval coverage
+- `campaign-packs/`: installable campaign-specific research packs
+- `configs/`: runtime configuration and machine-enforced policy files
+- `docs/`: architecture, canonical references, audits, and build plans
 
 ## License
 
