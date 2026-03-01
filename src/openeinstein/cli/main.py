@@ -10,6 +10,8 @@ import typer
 from rich import print as rprint
 
 from openeinstein import __version__
+from openeinstein.evals import EvalRunner, discover_eval_suites
+from openeinstein.persistence import CampaignDB
 from openeinstein.tracing import TraceStore
 
 app = typer.Typer(help="OpenEinstein control plane CLI")
@@ -17,11 +19,13 @@ run_app = typer.Typer(help="Manage campaign runs", invoke_without_command=True)
 pack_app = typer.Typer(help="Install and inspect campaign packs")
 approvals_app = typer.Typer(help="Manage approval state")
 trace_app = typer.Typer(help="Trace inspection and export")
+eval_app = typer.Typer(help="Eval suite commands")
 
 app.add_typer(run_app, name="run")
 app.add_typer(pack_app, name="pack")
 app.add_typer(approvals_app, name="approvals")
 app.add_typer(trace_app, name="trace")
+app.add_typer(eval_app, name="eval")
 
 
 @app.command("version")
@@ -86,8 +90,79 @@ def approvals_list() -> None:
     rprint("Approval state: [yellow]not implemented yet[/yellow]")
 
 
+def _db_path() -> Path:
+    return Path(".openeinstein") / "openeinstein.db"
+
+
 def _trace_store() -> TraceStore:
-    return TraceStore.from_path(Path(".openeinstein") / "openeinstein.db")
+    return TraceStore.from_path(_db_path())
+
+
+@eval_app.command("list")
+def eval_list(
+    path: Path = typer.Option(Path("evals"), "--path", "-p", help="Eval suite root directory")
+) -> None:
+    """List available eval suites."""
+    db = CampaignDB(_db_path())
+    runner = EvalRunner(db)
+    suite_files = discover_eval_suites(path)
+    if not suite_files:
+        rprint(f"No eval suites found under {path}")
+        db.close()
+        return
+    for suite_file in suite_files:
+        suite = runner.load_suite(suite_file)
+        rprint(f"{suite.name}: {suite_file}")
+    db.close()
+
+
+@eval_app.command("run")
+def eval_run(
+    suite_file: Path = typer.Argument(..., exists=True, readable=True),
+    run_id: str | None = typer.Option(None, "--run-id", help="Optional eval run id"),
+) -> None:
+    """Run an eval suite and persist results."""
+    db = CampaignDB(_db_path())
+    runner = EvalRunner(db)
+    suite = runner.load_suite(suite_file)
+    report = runner.run_suite(suite, run_id=run_id)
+    rprint(
+        f"Eval run {report.run_id} ({report.suite_name}): "
+        f"{report.passed_cases}/{report.total_cases} passed"
+    )
+    for case in report.case_results:
+        rprint(f"- {case.case_name}: {'PASS' if case.passed else 'FAIL'}")
+    db.close()
+
+
+@eval_app.command("results")
+def eval_results(run_id: str = typer.Argument("latest")) -> None:
+    """Show persisted eval results by run id."""
+    db = CampaignDB(_db_path())
+    if run_id == "all":
+        results = db.get_eval_results()
+    elif run_id == "latest":
+        all_results = db.get_eval_results()
+        if not all_results:
+            rprint("No eval results found.")
+            db.close()
+            return
+        latest_run = all_results[-1].run_id
+        results = [row for row in all_results if row.run_id == latest_run]
+        run_id = latest_run
+    else:
+        results = db.get_eval_results(run_id)
+
+    if not results:
+        rprint(f"No eval results found for run {run_id}.")
+        db.close()
+        return
+
+    passed = sum(1 for row in results if row.passed)
+    rprint(f"Eval results for run {run_id}: {passed}/{len(results)} passed")
+    for row in results:
+        rprint(f"- {row.suite_name}/{row.case_name}: {'PASS' if row.passed else 'FAIL'}")
+    db.close()
 
 
 @trace_app.command("list")

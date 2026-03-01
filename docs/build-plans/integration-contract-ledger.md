@@ -190,3 +190,38 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: CLI subcommands use `TraceStore` against `.openeinstein/openeinstein.db`.
   - Integration test: `tests/integration/test_tracing_cli_integration.py` validates list/export roundtrip.
+
+## Task 1.5: Implement eval framework scaffolding
+
+- Files Created:
+  - `src/openeinstein/evals/models.py`
+  - `src/openeinstein/evals/runner.py`
+  - `tests/unit/test_evals.py`
+  - `tests/integration/test_eval_cli_integration.py`
+- Files Modified:
+  - `src/openeinstein/evals/__init__.py`
+  - `src/openeinstein/cli/main.py`
+  - `src/openeinstein/persistence/db.py`
+  - `src/openeinstein/persistence/__init__.py`
+  - `tests/unit/test_persistence.py`
+- Interfaces Exposed:
+  - `EvalRunner.load_suite(path) -> EvalSuite`
+  - `EvalRunner.run_suite(suite, run_id?, executor?) -> EvalRunReport`
+  - `discover_eval_suites(root) -> list[Path]`
+  - `CampaignDB.get_eval_results(run_id: str | None = None)`
+  - CLI: `openeinstein eval list|run|results`
+- Database Changes:
+  - No new table; added typed retrieval API for `eval_results`.
+- Config Changes:
+  - Eval suite YAML schema validated through `EvalSuiteDocument`.
+- Depends On: Task 1.3 persistence and Task 1.4 tracing CLI structure.
+- Depended On By: persona/skill/campaign eval tasks in later phases.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_evals.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_eval_cli_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: `openeinstein eval run` loads YAML suite, executes cases, and stores outcomes.
+  - Integration test: `tests/integration/test_eval_cli_integration.py` validates list/run/results flow.

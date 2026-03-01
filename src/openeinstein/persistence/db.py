@@ -38,6 +38,18 @@ class TraceSpanRecord:
     ended_at: str | None
 
 
+@dataclass(frozen=True)
+class EvalResultRecord:
+    id: int
+    run_id: str
+    suite_name: str
+    case_name: str
+    passed: bool
+    expected: dict[str, Any]
+    actual: dict[str, Any]
+    created_at: str
+
+
 class CampaignDB:
     """Typed CRUD wrapper around the OpenEinstein SQLite schema."""
 
@@ -284,6 +296,39 @@ class CampaignDB:
         )
         self._conn.commit()
         return self._required_lastrowid(cursor)
+
+    def get_eval_results(self, run_id: str | None = None) -> list[EvalResultRecord]:
+        if run_id is None:
+            rows = self._conn.execute(
+                """
+                SELECT id, run_id, suite_name, case_name, passed, expected_json, actual_json, created_at
+                FROM eval_results
+                ORDER BY id
+                """
+            ).fetchall()
+        else:
+            rows = self._conn.execute(
+                """
+                SELECT id, run_id, suite_name, case_name, passed, expected_json, actual_json, created_at
+                FROM eval_results
+                WHERE run_id = ?
+                ORDER BY id
+                """,
+                (run_id,),
+            ).fetchall()
+        return [
+            EvalResultRecord(
+                id=int(row["id"]),
+                run_id=row["run_id"],
+                suite_name=row["suite_name"],
+                case_name=row["case_name"],
+                passed=bool(row["passed"]),
+                expected=json.loads(row["expected_json"]),
+                actual=json.loads(row["actual_json"]),
+                created_at=row["created_at"],
+            )
+            for row in rows
+        ]
 
     def log_approval(self, run_id: str, action: str, approved: bool, reason: str | None) -> int:
         cursor = self._conn.execute(

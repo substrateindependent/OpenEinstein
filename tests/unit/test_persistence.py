@@ -27,6 +27,10 @@ def test_persistence_crud_operations(tmp_path: Path) -> None:
 
     db.add_trace_span("run-1", "gate", {"k": "v"}, "t0", "t1")
     db.add_eval_result("run-1", "suite", "case", True, {"a": 1}, {"a": 1})
+    eval_results = db.get_eval_results("run-1")
+    assert len(eval_results) == 1
+    assert eval_results[0].suite_name == "suite"
+    assert eval_results[0].passed is True
     db.log_approval("run-1", "shell_exec", True, "approved")
 
     stats = db.get_statistics("run-1")
