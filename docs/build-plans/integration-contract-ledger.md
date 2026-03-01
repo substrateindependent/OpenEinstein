@@ -731,3 +731,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: ADS connector server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
   - Integration test: `tests/integration/test_ads_connector.py` validates live search and citation metrics lookup.
+
+## Task 4.5: Integrate CrossRef MCP
+
+- Files Created:
+  - `src/openeinstein/tools/crossref_server.py`
+  - `tests/unit/test_crossref_server.py`
+  - `tests/integration/test_crossref_mcp.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `CrossrefMCPServer` with tools: `resolve_doi`, `search_works`, `capabilities`
+  - Pydantic models: `CrossrefDOIArgs`, `CrossrefSearchArgs`
+- Database Changes: none.
+- Config Changes:
+  - Uses optional `CROSSREF_MAILTO` for polite-pool API requests.
+- Depends On: Task 1.2 ToolBus contract and network connectivity.
+- Depended On By: DOI normalization and citation metadata enrichment in literature workflows.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_crossref_server.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_crossref_mcp.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: CrossRef connector server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
+  - Integration test: `tests/integration/test_crossref_mcp.py` validates DOI resolution and search roundtrip.
