@@ -9,6 +9,11 @@ from openeinstein.agents.orchestrator import (
     OrchestrationSummary,
     TaskResult,
 )
+from openeinstein.agents.verification import (
+    VerificationAgent,
+    VerificationIssue,
+    VerificationReport,
+)
 
 __all__ = [
     "AgentBootstrapContext",
@@ -23,4 +28,7 @@ __all__ = [
     "OpenEinsteinAgent",
     "OrchestrationSummary",
     "TaskResult",
+    "VerificationAgent",
+    "VerificationIssue",
+    "VerificationReport",
 ]

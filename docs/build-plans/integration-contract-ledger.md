@@ -454,3 +454,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: literature agent merges and ranks source outputs and generates BibTeX.
   - Integration test: `tests/integration/test_literature_agent_integration.py` validates cache hook lifecycle and output schema.
+
+## Task 2.7: Implement verification agent
+
+- Files Created:
+  - `src/openeinstein/agents/verification.py`
+  - `tests/unit/test_verification_agent.py`
+  - `tests/integration/test_verification_agent_integration.py`
+- Files Modified:
+  - `src/openeinstein/agents/__init__.py`
+- Interfaces Exposed:
+  - `VerificationAgent.run(...)`
+  - `VerificationAgent.detect_inconsistencies(...)`
+  - Models: `VerificationIssue`, `VerificationReport`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 2.3 base agent abstraction.
+- Depended On By: campaign review/triage and security audit checks in later phases.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_verification_agent.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_verification_agent_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: verification agent ingests claim sets and returns structured review flags.
+  - Integration test: `tests/integration/test_verification_agent_integration.py` validates no-inconsistency path.
