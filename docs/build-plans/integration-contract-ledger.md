@@ -679,3 +679,28 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: Semantic Scholar tool server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
   - Integration test: `tests/integration/test_semantic_scholar_mcp.py` validates live search and paper lookup with keyless probe fallback.
+
+## Task 4.3: Implement INSPIRE-HEP connector
+
+- Files Created:
+  - `src/openeinstein/tools/inspire_server.py`
+  - `tests/unit/test_inspire_server.py`
+  - `tests/integration/test_inspire_connector.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `InspireMCPServer` with tools: `search_literature`, `lookup_author`, `export_citations`, `capabilities`
+  - Pydantic models: `InspireSearchArgs`, `InspireCitationArgs`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 1.2 ToolBus contract and network connectivity.
+- Depended On By: literature-agent source fusion and citation-chain enrichment.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_inspire_server.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_inspire_connector.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: INSPIRE connector server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
+  - Integration test: `tests/integration/test_inspire_connector.py` validates live literature search, author lookup, and citation export.
