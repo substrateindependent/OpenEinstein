@@ -2,7 +2,7 @@
 
 This document tracks the live architecture of the repository.
 
-## Current State (Through Phase 1)
+## Current State (Through Phase 2)
 
 - Routing subsystem with logical role resolution (`reasoning`, `generation`, `fast`, `embeddings`) and fallback chains.
 - ToolBus subsystem with lifecycle-managed tool servers and CLI+JSON adapters.
@@ -11,6 +11,14 @@ This document tracks the live architecture of the repository.
 - Eval framework with Pydantic YAML suite schema, deterministic runner, result persistence, and CLI commands.
 - Control plane primitives for run lifecycle (`start/status/wait/events/stop/resume`) with JSONL event streams and artifact attachment.
 - Campaign Registry MCP-style server exposing persistence tools through ToolBus.
+- Security subsystem with approvals store, policy engine enforcement, secret redaction, and metadata pinning.
+- Hook dispatch subsystem with built-in approval and audit hooks.
+- Skill registry + bounded context assembly with CLI reporting.
+- Agent base abstractions and specialized agents:
+  - `ComputationAgent`
+  - `LiteratureAgent`
+  - `VerificationAgent`
+  - `AgentOrchestrator`
 
 ## Key Boundaries
 
@@ -21,4 +29,4 @@ This document tracks the live architecture of the repository.
 
 ## Next Phase
 
-Phase 2 expands security enforcement, hooks, and multi-agent orchestration on top of the Phase 1 contracts.
+Phase 3 adds CAS backend implementations and numerical tool surfaces.

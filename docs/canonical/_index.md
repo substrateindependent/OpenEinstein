@@ -14,11 +14,12 @@ This index tracks the authoritative subsystem documents for OpenEinstein.
 - [Tracing and Evals](./tracing-and-evals.md) - Implemented (Phase 1)
 - Phase 1 status: complete and validated via unit + integration coverage.
 - campaign-engine.md
-- cas-backends.md
+- [CAS Backends](./cas-backends.md) - Implemented (Phase 3 pre-doc gate)
 - literature-infrastructure.md
 - [Multi-Agent Orchestration](./multi-agent-orchestration.md) - Implemented (Phase 2 pre-doc gate)
 - [Security Model](./security-model.md) - Implemented (Phase 2 pre-doc gate)
 - cli-interface.md
 - [Personality](./personality.md) - Implemented (Phase 2 pre-doc gate)
+- Phase 2 status: complete and validated via unit + integration coverage.
 
 Add each document before implementing the corresponding subsystem, then update it at the end of each phase boundary.
