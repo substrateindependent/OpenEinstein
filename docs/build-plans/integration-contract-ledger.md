@@ -994,3 +994,41 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: CLI `report generate` synthesizes markdown/latex reports from persisted campaign data.
   - Integration test: `tests/integration/test_report_generation_integration.py` validates markdown and LaTeX output generation.
+
+## Task 7.1: Write the first Campaign Pack
+
+- Files Created:
+  - `campaign-packs/modified-gravity-action-search/templates/cosmology-reduction.yaml`
+  - `campaign-packs/modified-gravity-action-search/templates/perturbation-analysis.yaml`
+  - `campaign-packs/modified-gravity-action-search/templates/stability-analysis.yaml`
+  - `tests/unit/test_modified_gravity_pack.py`
+  - `tests/integration/test_modified_gravity_pack.py`
+- Files Modified:
+  - `campaign-packs/modified-gravity-action-search/campaign.yaml`
+  - `campaign-packs/modified-gravity-action-search/docs/README.md`
+  - `campaign-packs/modified-gravity-action-search/docs/provenance.md`
+  - `campaign-packs/modified-gravity-action-search/evals/known-models.yaml`
+  - `campaign-packs/modified-gravity-action-search/literature-seed.yaml`
+  - `campaign-packs/modified-gravity-action-search/skills/action-taxonomy/SKILL.md`
+  - `campaign-packs/modified-gravity-action-search/skills/cosmology-reduction/SKILL.md`
+  - `campaign-packs/modified-gravity-action-search/skills/literature-xref/SKILL.md`
+  - `campaign-packs/modified-gravity-action-search/skills/perturbation-analysis/SKILL.md`
+  - `campaign-packs/modified-gravity-action-search/skills/stability-analysis/SKILL.md`
+  - `tests/integration/test_campaign_config_integration.py`
+- Interfaces Exposed:
+  - Campaign-pack contracts for gate skills/templates/evals/literature seed under `campaign-packs/modified-gravity-action-search`.
+  - Template assets consumable by `TemplateRegistry.load_directory`.
+- Database Changes: none.
+- Config Changes:
+  - Pack `campaign.yaml` now declares concrete gate timeouts and tool dependencies (`registry`, `scanner`, `arxiv`, `crossref`).
+- Depends On: Tasks 3.4 template registry, 5.1 campaign config loader, 5.3 gate pipeline runner.
+- Depended On By: Task 7.2 known-model campaign evaluation and pack-level operator workflows.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_modified_gravity_pack.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_modified_gravity_pack.py tests/integration/test_campaign_config_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: `CampaignConfigLoader.load_pack("modified-gravity-action-search")` and `TemplateRegistry.load_directory(...)` consume the pack assets for dry-run gate execution.
+  - Integration test: `tests/integration/test_modified_gravity_pack.py` validates install/validate/mock dry-run behavior.

@@ -1,3 +1,10 @@
-seed_arxiv_ids: []
-seed_dois: []
-notes: Add seed papers for baseline literature retrieval.
+seed_arxiv_ids:
+  - "1004.5405"
+  - "1404.3713"
+  - "1703.00443"
+seed_dois:
+  - "10.1103/PhysRevD.82.063515"
+  - "10.1103/PhysRevD.89.084042"
+notes: |
+  Seed set covers broad modified-gravity EFT and Horndeski-era references.
+  IDs are used for reproducible literature bootstrap in dry-runs.

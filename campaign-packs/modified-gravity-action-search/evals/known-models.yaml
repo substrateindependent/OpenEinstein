@@ -1,1 +1,29 @@
-cases: []
+eval_suite:
+  name: modified-gravity-known-models
+  description: Expected viability labels for baseline modified-gravity exemplars.
+  cases:
+    - name: gr_baseline
+      input:
+        model: general_relativity
+      expected:
+        viable: true
+    - name: lambda_cdm_equivalent
+      input:
+        model: lambda_cdm
+      expected:
+        viable: true
+    - name: toy_ghost_model
+      input:
+        model: toy_ghost_model
+      expected:
+        viable: false
+    - name: toy_tachyon_model
+      input:
+        model: toy_tachyon_model
+      expected:
+        viable: false
+    - name: horndeski_safe_slice
+      input:
+        model: horndeski_safe_slice
+      expected:
+        viable: true

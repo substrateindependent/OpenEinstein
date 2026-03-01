@@ -24,7 +24,7 @@ def test_campaign_pack_discovery_and_runtime_validation() -> None:
     runtime = loader.validate_runtime_requirements(
         loaded.config,
         backend_capabilities=backend_capabilities,
-        available_tools={"registry", "scanner", "literature"},
+        available_tools={"registry", "scanner", "literature", "arxiv", "crossref"},
     )
     assert "capability_map" in runtime
     assert set(runtime["capability_map"]) == {gate.name for gate in loaded.config.gate_pipeline}

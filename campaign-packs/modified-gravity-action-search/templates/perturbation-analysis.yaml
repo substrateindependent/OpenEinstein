@@ -1,0 +1,16 @@
+template:
+  template_id: perturbation-analysis
+  version: "1.0.0"
+  description: Linearized perturbation expansion for candidate model.
+  backends:
+    - backend: mathematica
+      body: |
+        reduced = {{reduced_equations}};
+        perturbed = Series[reduced, {{perturbation_symbol}}, 0, 1] // Normal;
+        Print[perturbed];
+    - backend: sympy
+      body: |
+        reduced = {{reduced_equations}}
+        epsilon = {{perturbation_symbol}}
+        perturbed = sympy.expand(reduced.series(epsilon, 0, 2).removeO())
+        print(perturbed)

@@ -1,0 +1,17 @@
+template:
+  template_id: stability-analysis
+  version: "1.0.0"
+  description: Compute stability diagnostics over parameter region.
+  backends:
+    - backend: mathematica
+      body: |
+        diagnostics = {{diagnostics_expression}};
+        region = {{parameter_region}};
+        result = Simplify[diagnostics /. region];
+        Print[result];
+    - backend: sympy
+      body: |
+        diagnostics = {{diagnostics_expression}}
+        region = {{parameter_region}}
+        result = sympy.simplify(diagnostics.subs(region))
+        print(result)

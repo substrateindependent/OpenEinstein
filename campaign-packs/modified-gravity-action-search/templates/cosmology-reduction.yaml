@@ -1,0 +1,17 @@
+template:
+  template_id: cosmology-reduction
+  version: "1.0.0"
+  description: FLRW reduction of candidate action.
+  backends:
+    - backend: mathematica
+      body: |
+        action = {{action_expression}};
+        metric = {{metric_ansatz}};
+        reduced = Simplify[action /. metric];
+        Print[reduced];
+    - backend: sympy
+      body: |
+        action = {{action_expression}}
+        metric = {{metric_ansatz}}
+        reduced = sympy.simplify(action.subs(metric))
+        print(reduced)

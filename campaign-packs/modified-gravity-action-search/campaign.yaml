@@ -1,23 +1,32 @@
 campaign:
   name: modified-gravity-action-search
   version: "0.1.0"
-  description: Modified gravity action search campaign pack scaffold.
+  description: >
+    Search and triage modified-gravity action candidates with symbolic reduction,
+    perturbative checks, stability filters, and literature cross-referencing.
 
   search_space:
     generator_skill: action-taxonomy
+
+  dependencies:
+    tools: [registry, scanner, arxiv, crossref]
 
   gate_pipeline:
     - name: Cosmological Reduction
       skill: cosmology-reduction
       cas_requirements: [tensor_simplify, vary_action]
+      timeout_seconds: 30
 
     - name: Perturbation Analysis
       skill: perturbation-analysis
       cas_requirements: [perturbation_expansion]
+      timeout_seconds: 30
 
     - name: Stability Analysis
       skill: stability-analysis
       cas_requirements: [stability_analysis]
+      timeout_seconds: 30
 
     - name: Literature Xref
       skill: literature-xref
+      timeout_seconds: 20
