@@ -21,3 +21,8 @@
 - Implemented base agent abstractions with bootstrap context injection from persona/tools/policy.
 - Implemented orchestrator delegation/aggregation with adaptive ordering and invariant-preserving compaction.
 - Implemented computation, literature, and verification specialized agent scaffolds with unit/integration coverage.
+- Implemented Phase 3 CAS + numerical stack: SymPy, Mathematica+xAct, Cadabra CLI, template registry, scanner tools, and sandboxed Python execution server.
+- Reconciled Cadabra dependency contract to use system CLI runtime (`cadabra2`) instead of a non-existent PyPI package.
+- Implemented Phase 4 literature + publishing stack: arXiv, Semantic Scholar, INSPIRE, ADS, CrossRef, Zotero, GROBID ingestion, and LaTeX toolchain/CLI.
+- Added canonical literature infrastructure documentation and expanded integration coverage for live connector roundtrips.
+- Updated test environment loading to read `.env` for local key-gated integration markers without overriding process env.
