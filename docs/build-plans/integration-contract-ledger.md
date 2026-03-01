@@ -836,3 +836,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: LaTeX wrappers are consumed directly by CLI commands under `openeinstein latex`.
   - Integration test: `tests/integration/test_latex_toolchain.py` validates compile/clean workflow and CLI command behavior.
+
+## Task 5.1: Implement campaign config loader
+
+- Files Created:
+  - `src/openeinstein/campaigns/config.py`
+  - `tests/unit/test_campaign_config.py`
+  - `tests/integration/test_campaign_config_integration.py`
+- Files Modified:
+  - `src/openeinstein/campaigns/__init__.py`
+- Interfaces Exposed:
+  - `CampaignConfigLoader.discover_packs/load_pack/load_config/resolve_capabilities/validate_runtime_requirements`
+  - Models: `CampaignDefinition`, `GateConfig`, `CampaignDependencies`, `LoadedCampaignPack`
+- Database Changes: none.
+- Config Changes:
+  - Campaign YAML now validated through strict Pydantic envelope model.
+- Depends On: existing campaign pack structure and Task 1.2 capability-first tool boundaries.
+- Depended On By: campaign state machine and gate pipeline runner.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_campaign_config.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_campaign_config_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: campaign packs are discovered and loaded through `CampaignConfigLoader`.
+  - Integration test: `tests/integration/test_campaign_config_integration.py` validates pack discovery + runtime capability/dependency validation.
