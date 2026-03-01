@@ -1,6 +1,7 @@
 """Tool bus and server abstractions."""
 
 from openeinstein.tools.registry_server import CampaignRegistryServer
+from openeinstein.tools.sympy_server import SympyMCPServer
 from openeinstein.tools.tool_bus import (
     CLIJSONToolWrapper,
     InMemoryToolServer,
@@ -23,5 +24,6 @@ __all__ = [
     "ToolServer",
     "ToolServerCrash",
     "ToolSpec",
+    "SympyMCPServer",
     "load_tool_servers_from_yaml",
 ]

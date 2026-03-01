@@ -480,3 +480,25 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: verification agent ingests claim sets and returns structured review flags.
   - Integration test: `tests/integration/test_verification_agent_integration.py` validates no-inconsistency path.
+
+## Task 3.1: Implement SymPy MCP server
+
+- Files Created:
+  - `src/openeinstein/tools/sympy_server.py`
+  - `tests/integration/test_sympy_mcp.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `SympyMCPServer` with tools: `create_session`, `evaluate`, `simplify`, `close_session`, `capabilities`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 1.2 ToolBus server lifecycle contract.
+- Depended On By: computation agent CAS routing and template backend mapping tasks.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_sympy_mcp.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: SymPy server is registered in `MCPConnectionManager` and invoked through `ToolBus`.
+  - Integration test: `tests/integration/test_sympy_mcp.py` validates session lifecycle and capabilities.
