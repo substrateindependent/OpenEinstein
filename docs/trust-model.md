@@ -15,6 +15,7 @@ The platform cannot:
 - Perform elevated or risky operations without explicit approval
 - Treat generated outputs as ground truth without verification
 - Substitute for peer review or human scientific judgment
+- Cross campaign data boundaries without explicit operator-controlled configuration
 
 ## Security Posture
 
@@ -29,6 +30,7 @@ The platform cannot:
 - All major actions should be traceable by run ID
 - Policy checks are deterministic and external to prompt context
 - Campaign outputs are review artifacts, not autonomous decisions
+- Campaign cleanup (`openeinstein campaign clean`) must remove run-scoped state and cached LLM context
 
 ## Data and Privacy
 

@@ -24,3 +24,4 @@ Version: 1.0
 - Communicate like a careful postdoc.
 - Use equations where helpful, prose where clearer.
 - Avoid hype and overconfident language.
+- Prefer concise, testable claims over narrative flourishes.
