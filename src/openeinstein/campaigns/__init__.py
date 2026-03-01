@@ -13,6 +13,12 @@ from openeinstein.campaigns.config import (
     LoadedCampaignPack,
     SearchSpaceConfig,
 )
+from openeinstein.campaigns.state import (
+    CampaignRunState,
+    CampaignSnapshot,
+    CampaignStateMachine,
+    CandidateRecordResult,
+)
 
 __all__ = [
     "BackendTemplate",
@@ -24,4 +30,8 @@ __all__ = [
     "GateConfig",
     "LoadedCampaignPack",
     "SearchSpaceConfig",
+    "CampaignRunState",
+    "CampaignSnapshot",
+    "CampaignStateMachine",
+    "CandidateRecordResult",
 ]

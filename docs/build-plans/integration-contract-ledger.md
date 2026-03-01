@@ -862,3 +862,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: campaign packs are discovered and loaded through `CampaignConfigLoader`.
   - Integration test: `tests/integration/test_campaign_config_integration.py` validates pack discovery + runtime capability/dependency validation.
+
+## Task 5.2: Implement campaign state machine
+
+- Files Created:
+  - `src/openeinstein/campaigns/state.py`
+  - `tests/unit/test_campaign_state.py`
+  - `tests/integration/test_campaign_state_integration.py`
+- Files Modified:
+  - `src/openeinstein/campaigns/__init__.py`
+- Interfaces Exposed:
+  - `CampaignStateMachine.initialize_run/transition/checkpoint/resume/record_candidate`
+  - Models: `CampaignSnapshot`, `CandidateRecordResult`
+- Database Changes:
+  - Consumes existing `campaign_state` and `candidates` tables for checkpoint and idempotency tracking.
+- Config Changes: none.
+- Depends On: Task 1.3 persistence and Task 1.6 control-plane event streams.
+- Depended On By: gate pipeline runner and adaptive sampling orchestration.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_campaign_state.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_campaign_state_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: campaign lifecycle transitions are persisted and emitted through `CampaignStateMachine`.
+  - Integration test: `tests/integration/test_campaign_state_integration.py` validates crash-close, restart, resume, and completion flow.
