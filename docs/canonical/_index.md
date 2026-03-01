@@ -15,7 +15,7 @@ This index tracks the authoritative subsystem documents for OpenEinstein.
 - Phase 1 status: complete and validated via unit + integration coverage.
 - campaign-engine.md
 - [CAS Backends](./cas-backends.md) - Implemented (Phase 3 pre-doc gate)
-- literature-infrastructure.md
+- [Literature Infrastructure](./literature-infrastructure.md) - Implemented (Phase 4 pre-doc gate)
 - [Multi-Agent Orchestration](./multi-agent-orchestration.md) - Implemented (Phase 2 pre-doc gate)
 - [Security Model](./security-model.md) - Implemented (Phase 2 pre-doc gate)
 - cli-interface.md

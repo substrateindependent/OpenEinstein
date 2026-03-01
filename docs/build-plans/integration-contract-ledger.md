@@ -625,3 +625,31 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: sandbox server executes restricted code and numerical helpers via ToolBus.
   - Integration test: `tests/integration/test_python_sandbox.py` validates execution output and forbidden-import blocking.
+
+## Task 4.1: Integrate arXiv MCP server
+
+- Files Created:
+  - `src/openeinstein/tools/arxiv_server.py`
+  - `tests/unit/test_arxiv_server.py`
+  - `tests/integration/test_arxiv_mcp.py`
+  - `docs/canonical/literature-infrastructure.md` (phase pre-doc gate)
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+  - `docs/canonical/_index.md`
+- Interfaces Exposed:
+  - `ArxivMCPServer` with tools: `search`, `download_pdf`, `capabilities`
+  - Pydantic models: `ArxivSearchArgs`, `ArxivDownloadArgs`
+- Database Changes: none.
+- Config Changes:
+  - Added canonical literature infrastructure document and index entry for Phase 4 pre-doc gate.
+- Depends On: Task 1.2 ToolBus contract and network connectivity.
+- Depended On By: literature agent source adapters, bibliography generation, campaign literature seeding.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_arxiv_server.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_arxiv_mcp.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: arXiv tool server is registered in `MCPConnectionManager` and invoked through `ToolBus`.
+  - Integration test: `tests/integration/test_arxiv_mcp.py` validates live search + PDF download.
