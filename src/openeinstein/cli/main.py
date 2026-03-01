@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich import print as rprint
 
 from openeinstein import __version__
 from openeinstein.evals import EvalRunner, discover_eval_suites
+from openeinstein.gateway import FileBackedControlPlane
 from openeinstein.persistence import CampaignDB
 from openeinstein.tracing import TraceStore
 
@@ -35,47 +35,79 @@ def version() -> None:
 
 
 @run_app.callback()
-def run_callback(
-    ctx: typer.Context,
-    campaign_path: Optional[Path] = typer.Argument(None, exists=True),
-) -> None:
-    """Start a campaign or call a run subcommand."""
+def run_callback(ctx: typer.Context) -> None:
+    """Run command namespace callback."""
     if ctx.invoked_subcommand is None:
-        if campaign_path is None:
-            raise typer.BadParameter("Provide a campaign path or a run subcommand.")
-        rprint(
-            f"Starting campaign from {campaign_path}: [yellow]not implemented yet[/yellow]"
-        )
+        raise typer.BadParameter("Provide a run subcommand.")
+
+
+@run_app.command("start")
+def run_start(campaign_path: Path = typer.Argument(..., exists=True)) -> None:
+    """Start a campaign run."""
+    control = _control_plane()
+    run_id = control.start_run()
+    control.emit_event(run_id, "campaign_path_set", {"campaign_path": str(campaign_path)})
+    rprint(
+        f"Started run {run_id} for campaign {campaign_path}. "
+        "Use `openeinstein run status <run_id>` to monitor progress."
+    )
 
 
 @run_app.command("status")
 def run_status(run_id: str = typer.Argument("latest")) -> None:
     """Show status for a run."""
-    rprint(f"Run {run_id}: [yellow]not implemented yet[/yellow]")
+    control = _control_plane()
+    resolved = _resolve_run_id(control, run_id)
+    status = control.get_status(resolved)
+    rprint(f"Run {resolved}: {status}")
 
 
 @run_app.command("wait")
-def run_wait(run_id: str = typer.Argument("latest")) -> None:
+def run_wait(
+    run_id: str = typer.Argument("latest"),
+    timeout: int = typer.Option(30, "--timeout", "-t", help="Maximum wait time in seconds"),
+) -> None:
     """Block until a run is complete."""
-    rprint(f"Waiting for run {run_id}: [yellow]not implemented yet[/yellow]")
+    control = _control_plane()
+    resolved = _resolve_run_id(control, run_id)
+    status = control.wait_for_status(
+        resolved,
+        target_statuses={"stopped", "completed", "failed"},
+        timeout_seconds=float(timeout),
+    )
+    rprint(f"Run {resolved} reached terminal status: {status}")
 
 
 @run_app.command("events")
 def run_events(run_id: str = typer.Argument("latest")) -> None:
     """Stream events for a run."""
-    rprint(f"Streaming events for run {run_id}: [yellow]not implemented yet[/yellow]")
+    control = _control_plane()
+    resolved = _resolve_run_id(control, run_id)
+    events = control.get_events(resolved)
+    if not events:
+        rprint(f"No events found for run {resolved}.")
+        return
+    for event in events:
+        payload = json.dumps(event.payload, sort_keys=True)
+        rprint(f"{event.timestamp} {event.event_type} {payload}")
 
 
 @run_app.command("stop")
 def run_stop(run_id: str) -> None:
     """Stop a campaign run."""
-    rprint(f"Stopping run {run_id}: [yellow]not implemented yet[/yellow]")
+    control = _control_plane()
+    resolved = _resolve_run_id(control, run_id)
+    control.stop_run(resolved, reason="cli stop command")
+    rprint(f"Run {resolved} stopped.")
 
 
 @run_app.command("resume")
 def run_resume(run_id: str) -> None:
     """Resume a campaign run from checkpoint."""
-    rprint(f"Resuming run {run_id}: [yellow]not implemented yet[/yellow]")
+    control = _control_plane()
+    resolved = _resolve_run_id(control, run_id)
+    control.resume_run(resolved)
+    rprint(f"Run {resolved} resumed.")
 
 
 @pack_app.command("install")
@@ -92,6 +124,19 @@ def approvals_list() -> None:
 
 def _db_path() -> Path:
     return Path(".openeinstein") / "openeinstein.db"
+
+
+def _control_plane() -> FileBackedControlPlane:
+    return FileBackedControlPlane(Path(".openeinstein") / "control-plane")
+
+
+def _resolve_run_id(control: FileBackedControlPlane, run_id: str) -> str:
+    if run_id != "latest":
+        return run_id
+    latest = control.latest_run_id()
+    if latest is None:
+        raise typer.BadParameter("No runs found.")
+    return latest
 
 
 def _trace_store() -> TraceStore:

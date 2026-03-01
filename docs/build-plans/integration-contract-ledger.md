@@ -225,3 +225,31 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: `openeinstein eval run` loads YAML suite, executes cases, and stores outcomes.
   - Integration test: `tests/integration/test_eval_cli_integration.py` validates list/run/results flow.
+
+## Task 1.6: Implement control plane primitives
+
+- Files Created:
+  - `src/openeinstein/gateway/control_plane.py`
+  - `tests/unit/test_control_plane.py`
+  - `tests/integration/test_control_plane_cli_integration.py`
+- Files Modified:
+  - `src/openeinstein/gateway/__init__.py`
+  - `src/openeinstein/cli/main.py`
+- Interfaces Exposed:
+  - `ControlPlane` protocol
+  - `FileBackedControlPlane.issue_run_id/start_run/emit_event/get_events/get_status/stop_run/resume_run/wait_for_status/attach_artifact`
+  - `RunEvent`, `RunRecord`, `ArtifactRecord`, `RunStatus`
+  - CLI: `openeinstein run start|status|wait|events|stop|resume`
+- Database Changes: none (JSON + JSONL file-backed state).
+- Config Changes: none.
+- Depends On: Task 0.5 policy boundary and phase 1 CLI scaffold.
+- Depended On By: campaign engine lifecycle orchestration and report synthesis.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_control_plane.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_control_plane_cli_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: CLI run commands now resolve to `FileBackedControlPlane`.
+  - Integration test: `tests/integration/test_control_plane_cli_integration.py` validates lifecycle operations and event stream output.
