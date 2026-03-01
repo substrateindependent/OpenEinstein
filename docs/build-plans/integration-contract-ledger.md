@@ -1055,3 +1055,24 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: pack eval suite is executed through `EvalRunner.run_suite(...)` with deterministic model-outcome mapping.
   - Integration test: `tests/integration/test_known_models_e2e.py` enforces zero false positives/negatives for baseline models.
+
+## Task 7.3: Crash recovery test
+
+- Files Created:
+  - `tests/integration/test_campaign_crash_recovery.py`
+- Files Modified: none.
+- Interfaces Exposed:
+  - Crash-recovery conformance checks for `CampaignStateMachine.resume(...)` across campaign states.
+- Database Changes:
+  - No schema changes; exercises persisted campaign/checkpoint/candidate records under restart.
+- Config Changes: none.
+- Depends On: Task 5.2 campaign state machine and Task 1.6 control plane primitives.
+- Depended On By: Phase 7 reliability gate and downstream long-running campaign confidence.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_campaign_crash_recovery.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: resume flow reconstructs run status/metadata after simulated crash boundaries in each supported state path.
+  - Integration test: `tests/integration/test_campaign_crash_recovery.py` verifies no candidate corruption and state fidelity on restart.
