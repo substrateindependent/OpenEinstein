@@ -4,6 +4,8 @@
 
 OpenEinstein is built as a domain-agnostic core platform with domain-specific extensions delivered via Campaign Packs.
 
+Before starting implementation work, read `BUILD-READY.md` and follow its verification loop, stop conditions, and commit discipline.
+
 Before opening a PR, verify your changes preserve these constraints:
 - No hardcoded model names in core logic
 - No direct LLM provider calls from feature code
