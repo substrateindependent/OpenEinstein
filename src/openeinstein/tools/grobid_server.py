@@ -194,13 +194,25 @@ class GrobidMCPServer:
             },
             method="POST",
         )
-        try:
-            with urlopen(request, timeout=timeout_seconds) as response:
-                return response.read().decode("utf-8")
-        except HTTPError as exc:
-            raise ToolBusError(f"GROBID HTTP error: {exc.code}") from exc
-        except URLError as exc:
-            raise ToolBusError(f"GROBID network error: {exc.reason}") from exc
+        last_error = ""
+        for attempt in range(3):
+            try:
+                with urlopen(request, timeout=timeout_seconds) as response:
+                    return response.read().decode("utf-8")
+            except HTTPError as exc:
+                if exc.code < 500 or attempt == 2:
+                    raise ToolBusError(f"GROBID HTTP error: {exc.code}") from exc
+                last_error = f"HTTP {exc.code}"
+            except (URLError, OSError) as exc:
+                if attempt == 2:
+                    reason = getattr(exc, "reason", str(exc))
+                    raise ToolBusError(f"GROBID network error: {reason}") from exc
+                last_error = str(exc)
+
+            time.sleep(1.0 + attempt)
+            self._wait_until_alive(timeout_seconds=30.0)
+
+        raise ToolBusError(f"GROBID ingestion failed: {last_error or 'unknown error'}")
 
     @staticmethod
     def _parse_tei(tei_xml: str) -> dict[str, Any]:
