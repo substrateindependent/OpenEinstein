@@ -312,3 +312,33 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: approvals and scan are exercised by CLI commands.
   - Integration test: `tests/integration/test_security_cli_integration.py` validates approvals workflow and scan detection.
+
+## Task 2.2: Implement hook system
+
+- Files Created:
+  - `src/openeinstein/gateway/hooks.py`
+  - `tests/unit/test_hooks.py`
+  - `tests/integration/test_hooks_integration.py`
+- Files Modified:
+  - `src/openeinstein/gateway/__init__.py`
+  - `src/openeinstein/security/core.py`
+- Interfaces Exposed:
+  - `HookRegistry.register/dispatch`
+  - `HookContext`, `HookResponse`, `HookDispatchResult`, `HookPoint`
+  - Built-ins: `AuditLoggerHook`, `ApprovalGateHook`
+  - Loader: `register_hooks_from_yaml(...)`
+  - Runtime consumer: `HookedToolGateway.call_tool(...)`
+- Database Changes: none.
+- Config Changes:
+  - YAML hook registration contract (`hooks` map with built-in `audit` and `approval_gate` types).
+- Depends On: Task 2.1 policy and approvals primitives.
+- Depended On By: agent orchestration and campaign state transition instrumentation.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_hooks.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_hooks_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: `HookedToolGateway` invokes before/after hook points around ToolBus calls.
+  - Integration test: `tests/integration/test_hooks_integration.py` validates approval blocking and audit hook logging.

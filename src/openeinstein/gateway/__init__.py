@@ -8,16 +8,40 @@ from openeinstein.gateway.control_plane import (
     RunRecord,
     RunStatus,
 )
+from openeinstein.gateway.hooks import (
+    ApprovalGateHook,
+    AuditLoggerHook,
+    Hook,
+    HookContext,
+    HookDispatchResult,
+    HookFactory,
+    HookPoint,
+    HookRegistry,
+    HookResponse,
+    HookedToolGateway,
+    register_hooks_from_yaml,
+)
 from openeinstein.gateway.policy import PolicyConfig, PolicyLoadError, load_policy
 
 __all__ = [
+    "ApprovalGateHook",
     "ArtifactRecord",
+    "AuditLoggerHook",
     "ControlPlane",
     "FileBackedControlPlane",
+    "Hook",
+    "HookContext",
+    "HookDispatchResult",
+    "HookFactory",
+    "HookPoint",
+    "HookRegistry",
+    "HookResponse",
+    "HookedToolGateway",
     "PolicyConfig",
     "PolicyLoadError",
     "RunEvent",
     "RunRecord",
     "RunStatus",
     "load_policy",
+    "register_hooks_from_yaml",
 ]

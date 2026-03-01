@@ -11,7 +11,7 @@ from typing import Any, Protocol, Sequence
 
 from pydantic import BaseModel, Field
 
-from openeinstein.gateway import PolicyConfig
+from openeinstein.gateway.policy import PolicyConfig
 from openeinstein.tools import ToolBus, ToolResult
 
 

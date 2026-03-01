@@ -1,0 +1,201 @@
+"""Hook registry and dispatch system for gateway extension points."""
+
+from __future__ import annotations
+
+import json
+import time
+from pathlib import Path
+from typing import Any, Callable, Literal, Protocol
+
+import yaml  # type: ignore[import-untyped]
+from pydantic import BaseModel, Field
+
+from openeinstein.security import PolicyEngine
+from openeinstein.tools import ToolBus, ToolResult
+
+HookPoint = Literal[
+    "before_tool_call",
+    "after_tool_call",
+    "campaign_state_transition",
+    "before_run_start",
+    "after_run_end",
+]
+
+
+class HookContext(BaseModel):
+    """Context payload delivered to hooks."""
+
+    hook_point: HookPoint
+    run_id: str | None = None
+    action: str | None = None
+    server: str | None = None
+    tool: str | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class HookResponse(BaseModel):
+    """Result of a hook callback."""
+
+    allow: bool = True
+    reason: str | None = None
+
+
+class HookDispatchResult(BaseModel):
+    """Aggregate dispatch output."""
+
+    allow: bool = True
+    reasons: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+
+
+class Hook(Protocol):
+    def __call__(self, context: HookContext) -> HookResponse | None: ...
+
+
+class HookRegistry:
+    """Registers and dispatches hooks by point."""
+
+    def __init__(self) -> None:
+        self._hooks: dict[HookPoint, list[Hook]] = {
+            "before_tool_call": [],
+            "after_tool_call": [],
+            "campaign_state_transition": [],
+            "before_run_start": [],
+            "after_run_end": [],
+        }
+
+    def register(self, hook_point: HookPoint, hook: Hook) -> None:
+        self._hooks[hook_point].append(hook)
+
+    def dispatch(self, hook_point: HookPoint, context: HookContext) -> HookDispatchResult:
+        result = HookDispatchResult(allow=True)
+        for hook in self._hooks[hook_point]:
+            try:
+                response = hook(context)
+            except Exception as exc:
+                result.errors.append(f"{hook_point}: {exc}")
+                continue
+            if response is None:
+                continue
+            if not response.allow:
+                result.allow = False
+                if response.reason:
+                    result.reasons.append(response.reason)
+        return result
+
+
+class AuditLoggerHook:
+    """Writes hook invocations to JSONL audit logs."""
+
+    def __init__(self, path: str | Path = Path(".openeinstein") / "hooks-audit.jsonl") -> None:
+        self._path = Path(path)
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+
+    def __call__(self, context: HookContext) -> HookResponse:
+        entry = {
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "hook_point": context.hook_point,
+            "run_id": context.run_id,
+            "action": context.action,
+            "server": context.server,
+            "tool": context.tool,
+            "payload": context.payload,
+        }
+        with self._path.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(entry))
+            stream.write("\n")
+        return HookResponse(allow=True)
+
+
+class ApprovalGateHook:
+    """Blocks calls that violate policy approvals."""
+
+    def __init__(self, policy_engine: PolicyEngine) -> None:
+        self._policy_engine = policy_engine
+
+    def __call__(self, context: HookContext) -> HookResponse:
+        if context.action is None:
+            return HookResponse(allow=True)
+        try:
+            self._policy_engine.enforce_action(context.action)
+        except PermissionError as exc:
+            return HookResponse(allow=False, reason=str(exc))
+        return HookResponse(allow=True)
+
+
+def register_hooks_from_yaml(
+    *,
+    registry: HookRegistry,
+    config_path: str | Path,
+    policy_engine: PolicyEngine | None = None,
+    audit_path: str | Path = Path(".openeinstein") / "hooks-audit.jsonl",
+) -> None:
+    """Register built-in hooks from YAML config."""
+    payload = yaml.safe_load(Path(config_path).read_text(encoding="utf-8")) or {}
+    configured = payload.get("hooks", {})
+    if not isinstance(configured, dict):
+        return
+
+    for point_raw, hook_specs in configured.items():
+        point = point_raw
+        if point not in registry._hooks:  # noqa: SLF001 - internal validation helper
+            continue
+        if not isinstance(hook_specs, list):
+            continue
+        for hook_spec in hook_specs:
+            if not isinstance(hook_spec, dict):
+                continue
+            hook_type = hook_spec.get("type")
+            if hook_type == "audit":
+                registry.register(
+                    point,  # type: ignore[arg-type]
+                    AuditLoggerHook(hook_spec.get("path", audit_path)),
+                )
+            if hook_type == "approval_gate" and policy_engine is not None:
+                registry.register(point, ApprovalGateHook(policy_engine))  # type: ignore[arg-type]
+
+
+class HookedToolGateway:
+    """Runtime path that enforces before/after hooks around ToolBus calls."""
+
+    def __init__(self, tool_bus: ToolBus, hooks: HookRegistry) -> None:
+        self._tool_bus = tool_bus
+        self._hooks = hooks
+
+    def call_tool(
+        self,
+        *,
+        action: str,
+        server: str,
+        tool: str,
+        args: dict[str, Any],
+        run_id: str | None = None,
+    ) -> ToolResult:
+        before_context = HookContext(
+            hook_point="before_tool_call",
+            run_id=run_id,
+            action=action,
+            server=server,
+            tool=tool,
+            payload=args,
+        )
+        before = self._hooks.dispatch("before_tool_call", before_context)
+        if not before.allow:
+            reason = before.reasons[0] if before.reasons else "blocked by hook"
+            return ToolResult(success=False, error=reason)
+
+        result = self._tool_bus.call(server, tool, args, run_id=run_id)
+
+        after_context = HookContext(
+            hook_point="after_tool_call",
+            run_id=run_id,
+            action=action,
+            server=server,
+            tool=tool,
+            payload={"success": result.success, "error": result.error},
+        )
+        self._hooks.dispatch("after_tool_call", after_context)
+        return result
+
+
+HookFactory = Callable[[HookContext], HookResponse | None]
