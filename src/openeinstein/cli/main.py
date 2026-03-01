@@ -14,6 +14,7 @@ from openeinstein.gateway import FileBackedControlPlane
 from openeinstein.persistence import CampaignDB
 from openeinstein.security import ApprovalsStore, SecurityScanner
 from openeinstein.skills import SkillRegistry
+from openeinstein.tools import LatexToolchain
 from openeinstein.tracing import TraceStore
 
 app = typer.Typer(help="OpenEinstein control plane CLI")
@@ -23,6 +24,7 @@ approvals_app = typer.Typer(help="Manage approval state")
 trace_app = typer.Typer(help="Trace inspection and export")
 eval_app = typer.Typer(help="Eval suite commands")
 context_app = typer.Typer(help="Context assembly utilities")
+latex_app = typer.Typer(help="LaTeX publishing toolchain commands")
 
 app.add_typer(run_app, name="run")
 app.add_typer(pack_app, name="pack")
@@ -30,6 +32,7 @@ app.add_typer(approvals_app, name="approvals")
 app.add_typer(trace_app, name="trace")
 app.add_typer(eval_app, name="eval")
 app.add_typer(context_app, name="context")
+app.add_typer(latex_app, name="latex")
 
 
 @app.command("version")
@@ -204,6 +207,69 @@ def context_report(
     rprint(
         f"Total chars: {bundle.report.total_chars}/{bundle.report.max_total_chars}"
     )
+
+
+@latex_app.command("skeleton")
+def latex_skeleton(
+    title: str = typer.Option(..., "--title"),
+    author: str = typer.Option(..., "--author"),
+    abstract: str = typer.Option(..., "--abstract"),
+    output: Path = typer.Option(Path("paper.tex"), "--output", "-o"),
+) -> None:
+    """Generate a preprint skeleton .tex file."""
+    toolchain = LatexToolchain()
+    path = toolchain.generate_skeleton(
+        title=title,
+        author=author,
+        abstract=abstract,
+        output_file=output,
+    )
+    rprint(f"Generated LaTeX skeleton: {path}")
+
+
+@latex_app.command("compile")
+def latex_compile(
+    tex_file: Path = typer.Argument(..., exists=True, readable=True),
+    timeout: int = typer.Option(120, "--timeout", "-t"),
+) -> None:
+    """Compile a .tex file to PDF using latexmk."""
+    toolchain = LatexToolchain()
+    result = toolchain.compile(tex_file, timeout_seconds=float(timeout))
+    if not result.success:
+        rprint("LaTeX compile failed.")
+        if result.stderr:
+            rprint(result.stderr)
+        raise typer.Exit(code=1)
+    rprint(f"Compiled PDF: {result.pdf_path}")
+
+
+@latex_app.command("clean")
+def latex_clean(
+    tex_file: Path = typer.Argument(..., exists=True, readable=True),
+    timeout: int = typer.Option(60, "--timeout", "-t"),
+) -> None:
+    """Clean LaTeX auxiliary build files."""
+    toolchain = LatexToolchain()
+    success = toolchain.clean(tex_file, timeout_seconds=float(timeout))
+    if not success:
+        rprint("LaTeX clean failed.")
+        raise typer.Exit(code=1)
+    rprint(f"Cleaned auxiliary files for {tex_file}")
+
+
+@latex_app.command("bibgen")
+def latex_bibgen(
+    entries_json: Path = typer.Argument(..., exists=True, readable=True),
+    output: Path = typer.Option(Path("references.bib"), "--output", "-o"),
+) -> None:
+    """Generate BibTeX from JSON list of entries."""
+    payload = json.loads(entries_json.read_text(encoding="utf-8"))
+    if not isinstance(payload, list):
+        raise typer.BadParameter("entries_json must contain a JSON list")
+    toolchain = LatexToolchain()
+    entries = toolchain.entries_from_payload(payload)
+    out_path = toolchain.generate_bibtex(entries, output_file=output)
+    rprint(f"Generated BibTeX file: {out_path}")
 
 
 def _db_path() -> Path:

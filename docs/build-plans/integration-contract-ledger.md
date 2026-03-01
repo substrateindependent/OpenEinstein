@@ -809,3 +809,30 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: GROBID wrapper server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
   - Integration test: `tests/integration/test_grobid_ingestion.py` validates live Docker service startup and PDF ingestion.
+
+## Task 4.8: Implement LaTeX publishing toolchain
+
+- Files Created:
+  - `src/openeinstein/tools/latex_toolchain.py`
+  - `tests/unit/test_latex_toolchain.py`
+  - `tests/integration/test_latex_toolchain.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+  - `src/openeinstein/cli/main.py`
+- Interfaces Exposed:
+  - `LatexToolchain.compile`, `LatexToolchain.clean`, `LatexToolchain.generate_bibtex`, `LatexToolchain.generate_skeleton`
+  - Models: `BibEntry`, `CompileResult`
+  - CLI: `openeinstein latex skeleton|compile|clean|bibgen`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 1.2 ToolBus conventions, LaTeX system dependency (`latexmk`).
+- Depended On By: report synthesis and publication/export workflows.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_latex_toolchain.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_latex_toolchain.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: LaTeX wrappers are consumed directly by CLI commands under `openeinstein latex`.
+  - Integration test: `tests/integration/test_latex_toolchain.py` validates compile/clean workflow and CLI command behavior.

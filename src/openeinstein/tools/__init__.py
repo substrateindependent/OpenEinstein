@@ -8,6 +8,7 @@ from openeinstein.tools.ads_server import ADSMCPServer
 from openeinstein.tools.crossref_server import CrossrefMCPServer
 from openeinstein.tools.zotero_server import ZoteroMCPServer
 from openeinstein.tools.grobid_server import GrobidMCPServer
+from openeinstein.tools.latex_toolchain import BibEntry, CompileResult, LatexToolchain
 from openeinstein.tools.python_sandbox_server import PythonSandboxMCPServer
 from openeinstein.tools.scanner_server import ScannerMCPServer
 from openeinstein.tools.registry_server import CampaignRegistryServer
@@ -33,6 +34,9 @@ __all__ = [
     "CrossrefMCPServer",
     "ZoteroMCPServer",
     "GrobidMCPServer",
+    "BibEntry",
+    "CompileResult",
+    "LatexToolchain",
     "CampaignRegistryServer",
     "CLIJSONToolWrapper",
     "InMemoryToolServer",
