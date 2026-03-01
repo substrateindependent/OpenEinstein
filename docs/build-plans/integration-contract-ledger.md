@@ -1032,3 +1032,26 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: `CampaignConfigLoader.load_pack("modified-gravity-action-search")` and `TemplateRegistry.load_directory(...)` consume the pack assets for dry-run gate execution.
   - Integration test: `tests/integration/test_modified_gravity_pack.py` validates install/validate/mock dry-run behavior.
+
+## Task 7.2: End-to-end campaign test with known models
+
+- Files Created:
+  - `tests/unit/test_known_models_truth_table.py`
+  - `tests/integration/test_known_models_e2e.py`
+- Files Modified: none.
+- Interfaces Exposed:
+  - Known-model mini-campaign truth-table verification contracts.
+- Database Changes:
+  - Uses existing `eval_results` persistence via `EvalRunner`.
+- Config Changes: none.
+- Depends On: Task 7.1 known-model eval fixture and Task 1.5 eval runner.
+- Depended On By: Phase 7 campaign correctness gate.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_known_models_truth_table.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_known_models_e2e.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: pack eval suite is executed through `EvalRunner.run_suite(...)` with deterministic model-outcome mapping.
+  - Integration test: `tests/integration/test_known_models_e2e.py` enforces zero false positives/negatives for baseline models.
