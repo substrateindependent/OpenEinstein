@@ -13,6 +13,7 @@ from openeinstein.evals import EvalRunner, discover_eval_suites
 from openeinstein.gateway import FileBackedControlPlane
 from openeinstein.persistence import CampaignDB
 from openeinstein.security import ApprovalsStore, SecurityScanner
+from openeinstein.skills import SkillRegistry
 from openeinstein.tracing import TraceStore
 
 app = typer.Typer(help="OpenEinstein control plane CLI")
@@ -21,12 +22,14 @@ pack_app = typer.Typer(help="Install and inspect campaign packs")
 approvals_app = typer.Typer(help="Manage approval state")
 trace_app = typer.Typer(help="Trace inspection and export")
 eval_app = typer.Typer(help="Eval suite commands")
+context_app = typer.Typer(help="Context assembly utilities")
 
 app.add_typer(run_app, name="run")
 app.add_typer(pack_app, name="pack")
 app.add_typer(approvals_app, name="approvals")
 app.add_typer(trace_app, name="trace")
 app.add_typer(eval_app, name="eval")
+app.add_typer(context_app, name="context")
 
 
 @app.command("version")
@@ -168,6 +171,39 @@ def approvals_reset() -> None:
     """Reset approvals to default empty state."""
     _approvals_store().reset()
     rprint("Approvals reset.")
+
+
+@context_app.command("report")
+def context_report(
+    skills_root: Path = typer.Option(
+        Path("skills"), "--skills-root", help="Directory root containing SKILL.md files"
+    ),
+    skill: list[str] | None = typer.Option(
+        None, "--skill", "-s", help="Skill name(s) to include; defaults to all discovered"
+    ),
+    max_chars_per_file: int = typer.Option(4000, "--max-per-file"),
+    max_total_chars: int = typer.Option(12000, "--max-total"),
+) -> None:
+    """Report bounded context assembly for selected skills."""
+    registry = SkillRegistry(
+        [skills_root],
+        max_chars_per_file=max_chars_per_file,
+        max_total_chars=max_total_chars,
+    )
+    discovered = registry.discover_skills()
+    if not discovered:
+        rprint(f"No skills discovered under {skills_root}")
+        return
+
+    selected = skill or sorted(discovered.keys())
+    bundle = registry.build_context(selected)
+    rprint(f"Selected skills: {', '.join(selected)}")
+    rprint(f"Included files: {len(bundle.report.included_files)}")
+    rprint(f"Omitted files: {len(bundle.report.omitted_files)}")
+    rprint(f"Truncated files: {len(bundle.report.truncated_files)}")
+    rprint(
+        f"Total chars: {bundle.report.total_chars}/{bundle.report.max_total_chars}"
+    )
 
 
 def _db_path() -> Path:

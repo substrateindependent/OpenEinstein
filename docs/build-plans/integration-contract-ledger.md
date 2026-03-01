@@ -342,3 +342,36 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: `HookedToolGateway` invokes before/after hook points around ToolBus calls.
   - Integration test: `tests/integration/test_hooks_integration.py` validates approval blocking and audit hook logging.
+
+## Task 2.3: Implement skill registry and base agent abstractions
+
+- Files Created:
+  - `src/openeinstein/skills/models.py`
+  - `src/openeinstein/skills/registry.py`
+  - `src/openeinstein/agents/base.py`
+  - `src/openeinstein/core/TOOLS.md`
+  - `tests/unit/test_skills.py`
+  - `tests/unit/test_agent_base.py`
+  - `tests/integration/test_context_report_cli_integration.py`
+- Files Modified:
+  - `src/openeinstein/skills/__init__.py`
+  - `src/openeinstein/agents/__init__.py`
+  - `src/openeinstein/cli/main.py`
+- Interfaces Exposed:
+  - Skill models: `SkillMetadata`, `SkillInstructions`, `SkillResources`, `SkillContextBundle`, `ContextReport`
+  - `SkillRegistry.discover_skills/load_instructions/build_context`
+  - Agent base: `OpenEinsteinAgent`, `AgentBootstrapContext`
+  - CLI: `openeinstein context report`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 1.1 routing, Task 1.2 ToolBus, Task 0.5 policy config.
+- Depended On By: orchestrator and specialized agent implementations (Tasks 2.4-2.7).
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_skills.py tests/unit/test_agent_base.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_context_report_cli_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: `OpenEinsteinAgent.build_bootstrap_context` injects persona/tools/policy and bounded skill context.
+  - Integration test: `tests/integration/test_context_report_cli_integration.py` validates context reporting through CLI.
