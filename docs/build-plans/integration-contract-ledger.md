@@ -783,3 +783,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: Zotero connector server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
   - Integration test: `tests/integration/test_zotero_connector.py` validates live sync and BibTeX export behavior.
+
+## Task 4.7: Implement GROBID PDF ingestion
+
+- Files Created:
+  - `src/openeinstein/tools/grobid_server.py`
+  - `tests/unit/test_grobid_server.py`
+  - `tests/integration/test_grobid_ingestion.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `GrobidMCPServer` with tools: `start_service`, `stop_service`, `ingest_pdf`, `capabilities`
+  - Pydantic models: `StartServiceArgs`, `IngestPDFArgs`, `StopServiceArgs`
+- Database Changes: none.
+- Config Changes:
+  - Docker-backed service lifecycle for GROBID container (`lfoppiano/grobid:0.8.0`).
+- Depends On: Task 1.2 ToolBus contract, Docker daemon, network access.
+- Depended On By: literature ingestion pipeline and reference extraction in report synthesis.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_grobid_server.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_grobid_ingestion.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: GROBID wrapper server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
+  - Integration test: `tests/integration/test_grobid_ingestion.py` validates live Docker service startup and PDF ingestion.
