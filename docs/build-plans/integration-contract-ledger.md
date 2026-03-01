@@ -136,3 +136,26 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: `ToolBus` exported via `openeinstein.tools`.
   - Integration test: server lifecycle + roundtrip in `tests/integration/test_tool_bus_mcp_roundtrip.py`.
+
+## Task 1.3: Implement persistence layer
+
+- Files Created:
+  - `src/openeinstein/persistence/db.py`
+  - `tests/unit/test_persistence.py`
+- Files Modified:
+  - `src/openeinstein/persistence/__init__.py`
+- Interfaces Exposed:
+  - `CampaignDB` typed CRUD methods for campaign state, candidates, failures, spans, evals, and approvals
+  - migration API: `apply_migration(version, sql)`
+- Database Changes:
+  - Added schema for `campaign_state`, `candidates`, `failure_log`, `trace_spans`, `eval_results`, `approval_log`, and `schema_migrations`.
+  - WAL mode enabled by default.
+- Config Changes: none.
+- Depends On: Task 0.1.
+- Depended On By: tracing, eval framework, registry server, campaign engine, approvals and audit paths.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_persistence.py -q`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: persistence API importable via `openeinstein.persistence`.
+  - Integration test consumer: registry MCP server tests (Task 1.7) consume these CRUD APIs.
