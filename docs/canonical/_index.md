@@ -4,9 +4,9 @@ This index tracks the authoritative subsystem documents for OpenEinstein.
 
 ## Core
 
-- [Core Architecture](./core-architecture.md)
+- [Core Architecture](./core-architecture.md) - Implemented
 
-## Planned Canonical Docs
+## Planned Canonical Docs (Phase-Gated)
 
 - gateway-control-plane.md
 - model-routing.md
@@ -20,4 +20,4 @@ This index tracks the authoritative subsystem documents for OpenEinstein.
 - cli-interface.md
 - personality.md
 
-Add each document as its subsystem becomes implemented.
+Add each document before implementing the corresponding subsystem, then update it at the end of each phase boundary.

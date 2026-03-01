@@ -33,4 +33,5 @@ This architecture is implemented in phases:
 ## Traceability
 
 - Reference plan: `OpenEinstein-Implementation-Plan.md`
+- Build constraints: `BUILD-READY.md`
 - Reference setup guide: `Development Resources/Repo-Setup-Best-Practices.md`
