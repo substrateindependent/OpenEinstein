@@ -159,3 +159,34 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: persistence API importable via `openeinstein.persistence`.
   - Integration test consumer: registry MCP server tests (Task 1.7) consume these CRUD APIs.
+
+## Task 1.4: Implement tracing subsystem
+
+- Files Created:
+  - `src/openeinstein/tracing/core.py`
+  - `tests/unit/test_tracing.py`
+  - `tests/integration/test_tracing_cli_integration.py`
+- Files Modified:
+  - `src/openeinstein/tracing/__init__.py`
+  - `src/openeinstein/persistence/db.py`
+  - `src/openeinstein/persistence/__init__.py`
+  - `src/openeinstein/cli/main.py`
+- Interfaces Exposed:
+  - `traced(span_name: str)` decorator
+  - `TraceStore.record_span(...)`
+  - `TraceStore.list_spans(run_id: str)`
+  - `TraceStore.export_otlp_json(run_id: str)`
+  - CLI: `openeinstein trace list` and `openeinstein trace export`
+- Database Changes:
+  - Reused existing `trace_spans` table with typed retrieval API `CampaignDB.get_trace_spans`.
+- Config Changes: none.
+- Depends On: Task 1.3.
+- Depended On By: eval runner observability, control plane telemetry, campaign reporting.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_tracing.py -q`
+  - `.venv/bin/pytest tests/integration/test_tracing_cli_integration.py -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: CLI subcommands use `TraceStore` against `.openeinstein/openeinstein.db`.
+  - Integration test: `tests/integration/test_tracing_cli_integration.py` validates list/export roundtrip.

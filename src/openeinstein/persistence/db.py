@@ -28,6 +28,16 @@ class FailureRecord:
     details: dict[str, Any]
 
 
+@dataclass(frozen=True)
+class TraceSpanRecord:
+    id: int
+    run_id: str
+    span_name: str
+    attributes: dict[str, Any]
+    started_at: str
+    ended_at: str | None
+
+
 class CampaignDB:
     """Typed CRUD wrapper around the OpenEinstein SQLite schema."""
 
@@ -310,6 +320,28 @@ class CampaignDB:
             "eval_results": int(evals["count"] if evals else 0),
             "approval_log": int(approvals["count"] if approvals else 0),
         }
+
+    def get_trace_spans(self, run_id: str) -> list[TraceSpanRecord]:
+        rows = self._conn.execute(
+            """
+            SELECT id, run_id, span_name, attributes_json, started_at, ended_at
+            FROM trace_spans
+            WHERE run_id = ?
+            ORDER BY id
+            """,
+            (run_id,),
+        ).fetchall()
+        return [
+            TraceSpanRecord(
+                id=int(row["id"]),
+                run_id=row["run_id"],
+                span_name=row["span_name"],
+                attributes=json.loads(row["attributes_json"]),
+                started_at=row["started_at"],
+                ended_at=row["ended_at"],
+            )
+            for row in rows
+        ]
 
     def journal_mode(self) -> str:
         row = self._conn.execute("PRAGMA journal_mode;").fetchone()
