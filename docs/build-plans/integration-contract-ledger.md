@@ -1119,3 +1119,23 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: `EvalRunner` loads `evals/persona-baseline.yaml`, executes deterministic persona checks, and persists case outcomes.
   - Integration test: `tests/evals/test_persona_evals.py` enforces pass-threshold and persisted-results coverage.
+
+## Task 7.6: Security audit
+
+- Files Created:
+  - `tests/integration/test_security_audit.py`
+- Files Modified: none.
+- Interfaces Exposed:
+  - End-to-end security-audit integration contract for scan, approvals gating, sandbox restrictions, and compaction invariant retention.
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 2.1 security subsystem, Task 2.4 compaction, and CLI scan command surface.
+- Depended On By: Phase 7 security acceptance gate.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_security_audit.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: `SecureToolGateway` enforces policy approvals/forbidden operations, `PythonSandboxMCPServer` blocks forbidden imports, and orchestrator compaction retains policy invariant tokens.
+  - Integration test: `tests/integration/test_security_audit.py` asserts scan findings, approval/violation behavior, sandbox blocks, and invariant preservation.
