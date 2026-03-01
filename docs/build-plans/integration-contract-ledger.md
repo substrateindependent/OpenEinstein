@@ -1097,3 +1097,25 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: two distinct `ModelRouter` configurations execute the same mini-campaign executor with provider-specific payload normalization and fallback handling.
   - Integration test: `tests/integration/test_multi_provider_routing.py` asserts equivalent model viability outcomes across provider configs.
+
+## Task 7.5: Persona eval suite
+
+- Files Created:
+  - `evals/persona-baseline.yaml`
+  - `tests/evals/test_persona_evals.py`
+- Files Modified: none.
+- Interfaces Exposed:
+  - Versioned persona eval suite artifact validating §14.4 behavior categories.
+- Database Changes:
+  - Uses existing eval result persistence through `CampaignDB.add_eval_result`.
+- Config Changes: none.
+- Depends On: Task 1.5 eval framework and persona/trust guidance docs.
+- Depended On By: Phase 7 persona quality gate and regression checks for persona changes.
+- Verification Commands:
+  - `.venv/bin/pytest tests/evals/test_persona_evals.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: `EvalRunner` loads `evals/persona-baseline.yaml`, executes deterministic persona checks, and persists case outcomes.
+  - Integration test: `tests/evals/test_persona_evals.py` enforces pass-threshold and persisted-results coverage.
