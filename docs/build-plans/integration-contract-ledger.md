@@ -253,3 +253,28 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: CLI run commands now resolve to `FileBackedControlPlane`.
   - Integration test: `tests/integration/test_control_plane_cli_integration.py` validates lifecycle operations and event stream output.
+
+## Task 1.7: Implement Campaign Registry MCP server
+
+- Files Created:
+  - `src/openeinstein/tools/registry_server.py`
+  - `tests/integration/test_registry_mcp.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `CampaignRegistryServer` implementing ToolServer lifecycle and tool dispatch
+  - Tools: `add_candidate`, `update_gate_result`, `get_candidates`, `get_failure_log`, `get_statistics`
+  - Pydantic JSON schema validation models for each tool payload
+- Database Changes:
+  - No schema change; consumed existing `CampaignDB` CRUD APIs.
+- Config Changes: none.
+- Depends On: Task 1.2 ToolBus and Task 1.3 persistence APIs.
+- Depended On By: agent task orchestration, campaign engine persistence calls via ToolBus.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_registry_mcp.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: registry server is registered with `MCPConnectionManager` and invoked through `ToolBus`.
+  - Integration test: `tests/integration/test_registry_mcp.py` validates discovery + roundtrip CRUD + validation failure.

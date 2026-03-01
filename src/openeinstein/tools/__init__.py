@@ -1,5 +1,6 @@
 """Tool bus and server abstractions."""
 
+from openeinstein.tools.registry_server import CampaignRegistryServer
 from openeinstein.tools.tool_bus import (
     CLIJSONToolWrapper,
     InMemoryToolServer,
@@ -12,6 +13,7 @@ from openeinstein.tools.tool_bus import (
 from openeinstein.tools.types import ToolResult, ToolServer, ToolSpec
 
 __all__ = [
+    "CampaignRegistryServer",
     "CLIJSONToolWrapper",
     "InMemoryToolServer",
     "MCPConnectionManager",
