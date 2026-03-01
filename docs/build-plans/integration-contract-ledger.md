@@ -402,3 +402,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: orchestrator executes bound subagents and returns aggregated output.
   - Integration test: `tests/integration/test_orchestrator_integration.py` validates execution flow and failure handling.
+
+## Task 2.5: Implement computation agent
+
+- Files Created:
+  - `src/openeinstein/agents/computation.py`
+  - `tests/unit/test_computation_agent.py`
+  - `tests/integration/test_computation_agent_integration.py`
+- Files Modified:
+  - `src/openeinstein/agents/__init__.py`
+- Interfaces Exposed:
+  - `ComputationAgent.run(...)` with template fill, timeout, fallback, and gate sequence execution
+  - `ComputationAgent.render_template(...)`
+  - Models: `GateResult`, `ComputationRunResult`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 2.3 base agent and Task 1.2 ToolBus.
+- Depended On By: campaign gate execution and CAS-backed scoring flows.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_computation_agent.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_computation_agent_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: computation agent invokes CAS through ToolBus and applies gate sequence.
+  - Integration test: `tests/integration/test_computation_agent_integration.py` validates gate failure path end-to-end.

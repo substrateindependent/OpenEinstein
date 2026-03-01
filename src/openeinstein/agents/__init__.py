@@ -1,6 +1,7 @@
 """Agent abstraction exports."""
 
 from openeinstein.agents.base import AgentBootstrapContext, OpenEinsteinAgent
+from openeinstein.agents.computation import ComputationAgent, ComputationRunResult, GateResult
 from openeinstein.agents.orchestrator import (
     AgentOrchestrator,
     DelegatedTask,
@@ -11,7 +12,10 @@ from openeinstein.agents.orchestrator import (
 __all__ = [
     "AgentBootstrapContext",
     "AgentOrchestrator",
+    "ComputationAgent",
+    "ComputationRunResult",
     "DelegatedTask",
+    "GateResult",
     "OpenEinsteinAgent",
     "OrchestrationSummary",
     "TaskResult",
