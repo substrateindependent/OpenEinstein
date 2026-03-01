@@ -502,3 +502,25 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: SymPy server is registered in `MCPConnectionManager` and invoked through `ToolBus`.
   - Integration test: `tests/integration/test_sympy_mcp.py` validates session lifecycle and capabilities.
+
+## Task 3.2: Implement Mathematica MCP server
+
+- Files Created:
+  - `src/openeinstein/tools/mathematica_server.py`
+  - `tests/integration/test_mathematica_mcp.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `MathematicaMCPServer` with tools: `create_session`, `evaluate`, `load_xact`, `recover_kernel`, `close_session`, `capabilities`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 1.2 ToolBus and wolframscript availability.
+- Depended On By: tensor/CAS backend routing and computation template execution.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_mathematica_mcp.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: Mathematica server executes through ToolBus with journaling and recovery hooks.
+  - Integration test: `tests/integration/test_mathematica_mcp.py` validates evaluate/xAct/timeout/recovery lifecycle.
