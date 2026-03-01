@@ -757,3 +757,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: CrossRef connector server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
   - Integration test: `tests/integration/test_crossref_mcp.py` validates DOI resolution and search roundtrip.
+
+## Task 4.6: Implement Zotero integration
+
+- Files Created:
+  - `src/openeinstein/tools/zotero_server.py`
+  - `tests/unit/test_zotero_server.py`
+  - `tests/integration/test_zotero_connector.py`
+- Files Modified:
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - `ZoteroMCPServer` with tools: `sync_library`, `export_bibtex`, `capabilities`
+  - Pydantic models: `ZoteroSyncArgs`, `ZoteroBibtexArgs`
+- Database Changes: none.
+- Config Changes:
+  - Connector reads `ZOTERO_API_KEY` and `ZOTERO_USER_ID` from environment.
+- Depends On: Task 1.2 ToolBus contract, network connectivity, Zotero credentials.
+- Depended On By: bibliography sync/export workflows and literature-source fusion.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_zotero_server.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_zotero_connector.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: Zotero connector server is registered in `MCPConnectionManager` and invoked via `ToolBus`.
+  - Integration test: `tests/integration/test_zotero_connector.py` validates live sync and BibTeX export behavior.
