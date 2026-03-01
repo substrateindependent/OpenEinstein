@@ -1076,3 +1076,24 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: resume flow reconstructs run status/metadata after simulated crash boundaries in each supported state path.
   - Integration test: `tests/integration/test_campaign_crash_recovery.py` verifies no candidate corruption and state fidelity on restart.
+
+## Task 7.4: Multi-provider model routing test
+
+- Files Created:
+  - `tests/integration/test_multi_provider_routing.py`
+- Files Modified: none.
+- Interfaces Exposed:
+  - Multi-provider equivalence test contract across alternate role-provider configurations.
+- Database Changes:
+  - Uses existing eval persistence via `EvalRunner` + `CampaignDB`.
+- Config Changes: none.
+- Depends On: Tasks 1.1 routing, 1.5 eval runner, and Task 7.1 known-model fixture.
+- Depended On By: Phase 7 routing-equivalence acceptance gate.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_multi_provider_routing.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: two distinct `ModelRouter` configurations execute the same mini-campaign executor with provider-specific payload normalization and fallback handling.
+  - Integration test: `tests/integration/test_multi_provider_routing.py` asserts equivalent model viability outcomes across provider configs.
