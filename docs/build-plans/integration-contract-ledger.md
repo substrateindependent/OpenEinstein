@@ -428,3 +428,29 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: computation agent invokes CAS through ToolBus and applies gate sequence.
   - Integration test: `tests/integration/test_computation_agent_integration.py` validates gate failure path end-to-end.
+
+## Task 2.6: Implement literature agent
+
+- Files Created:
+  - `src/openeinstein/agents/literature.py`
+  - `tests/unit/test_literature_agent.py`
+  - `tests/integration/test_literature_agent_integration.py`
+- Files Modified:
+  - `src/openeinstein/agents/__init__.py`
+- Interfaces Exposed:
+  - `LiteratureAgent.run(...)` for multi-source query, dedup, deterministic ranking, and BibTeX rendering
+  - Models: `LiteratureCandidate`, `LiteratureRunResult`
+  - Source protocol: `LiteratureSource`
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: Task 2.3 base agent abstraction.
+- Depended On By: campaign literature workflows and report synthesis.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_literature_agent.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_literature_agent_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: literature agent merges and ranks source outputs and generates BibTeX.
+  - Integration test: `tests/integration/test_literature_agent_integration.py` validates cache hook lifecycle and output schema.
