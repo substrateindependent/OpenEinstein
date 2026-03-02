@@ -83,3 +83,15 @@ export type ConfigValidationResponse = {
   valid: boolean
   errors: string[]
 }
+
+export type ComparedRun = {
+  run_id: string
+  status: RunStatus
+  estimated_cost_usd: number
+  confidence: number
+  tags: string[]
+}
+
+export type CompareRunsResponse = {
+  runs: ComparedRun[]
+}

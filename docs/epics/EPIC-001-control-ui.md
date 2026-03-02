@@ -115,10 +115,11 @@ Each ticket that introduces an artifact must include:
 - UI-016: Tools panel + settings surface with test-connection and config validation wiring.
 - UI-017: Command palette with keyboard shortcut (`Cmd/Ctrl+K`), navigation commands, and mutation command dispatch.
 - UI-018: Run replay/inspection baseline with event inspector, fork-from-event API flow, and runtime verbosity controls over WS.
+- UI-019: Compare route with run selection, tag/filter controls, confidence panel, and compare/tag API wiring.
 
 ### In Progress / Not Yet Implemented
 
-- UI-019 through UI-024 remain open (compare/confidence panels, remote+webhook wizard, campaign builder + marketplace, NL command mode/layout customization, packaging/CI hardening).
+- UI-020 through UI-024 remain open (remote+webhook wizard, campaign builder + marketplace, NL command mode/layout customization, packaging/CI hardening).
 
 ### Key Files Changed
 

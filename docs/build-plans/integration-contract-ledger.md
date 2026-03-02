@@ -1441,3 +1441,46 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
     - `ui/src/App.replay.test.tsx` verifies WS verbosity send + fork endpoint invocation.
     - `ui/src/components/runs/RunWorkspace.test.tsx` verifies inspector controls.
     - `tests/integration/test_dashboard_api_contract_integration.py` verifies fork endpoint reachability and parent linkage.
+
+## UI-019: Compare + tags/filters + confidence panel wiring
+
+- Files Created:
+  - `ui/src/components/compare/ComparePanel.tsx`
+  - `ui/src/components/compare/ComparePanel.test.tsx`
+  - `ui/src/App.compare.test.tsx`
+- Files Modified:
+  - Frontend:
+    - `ui/src/App.tsx`
+    - `ui/src/App.css`
+    - `ui/src/App.routes.test.tsx`
+    - `ui/src/lib/apiClient.ts`
+    - `ui/src/types/api.ts`
+  - Backend:
+    - `src/openeinstein/gateway/api/runs.py`
+    - `tests/integration/test_dashboard_api_contract_integration.py`
+- Interfaces Exposed:
+  - HTTP:
+    - `GET /api/v1/runs/compare?run_ids=...` returns normalized compare rows (`status`, `estimated_cost_usd`, `confidence`, `tags`).
+    - `POST /api/v1/runs/{run_id}/tags` persists tag assignments.
+  - Frontend runtime:
+    - mounted `/compare` route with run multi-select, compare action, tag filter, and confidence summary.
+    - compare panel with per-run tag edits and saved-tag mutation path.
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: UI-018 run lifecycle + replay flow and existing runs API/state plumbing.
+- Depended On By: UI-020+ power features and platform-level campaign insights.
+- Verification Commands:
+  - `pnpm test`
+  - `pnpm run typecheck`
+  - `.venv/bin/pytest tests/integration/test_dashboard_api_contract_integration.py --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path:
+    - Compare nav button mounts `/compare`, selected run IDs call compare API, and tag edits post to run-tags endpoint.
+    - Command palette includes compare route navigation (`Open Compare`).
+  - Integration tests:
+    - `ui/src/App.compare.test.tsx` verifies route mount, compare API call, and tag update API mutation.
+    - `ui/src/components/compare/ComparePanel.test.tsx` verifies confidence rendering and tag update callback dispatch.
+    - `tests/integration/test_dashboard_api_contract_integration.py` verifies compare and tags endpoint wiring under auth.

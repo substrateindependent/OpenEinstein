@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import { ApprovalsCenter } from './components/approvals/ApprovalsCenter'
 import { ArtifactsBrowser } from './components/artifacts/ArtifactsBrowser'
 import { CommandPalette } from './components/commands/CommandPalette'
+import { ComparePanel } from './components/compare/ComparePanel'
 import { GatewayStatus } from './components/layout/GatewayStatus'
 import { ApprovalBanner } from './components/runs/ApprovalBanner'
 import { RunWizard } from './components/runs/RunWizard'
@@ -12,6 +13,7 @@ import { SettingsPanel } from './components/settings/SettingsPanel'
 import { ToolsPanel } from './components/tools/ToolsPanel'
 import {
   bulkDecideApprovals,
+  compareRuns,
   decideApproval,
   exportRun,
   forkRun,
@@ -28,6 +30,7 @@ import {
   startRun,
   stopRun,
   testToolConnection,
+  updateRunTags,
   validateDashboardConfig,
 } from './lib/apiClient'
 import { RunWorkspace } from './components/runs/RunWorkspace'
@@ -388,6 +391,81 @@ function ToolsPage() {
   return <ToolsPanel tools={tools} testResults={testResults} onTestConnection={onTestConnection} />
 }
 
+function ComparePage() {
+  const token = useSessionStore((state) => state.token)
+  const runs = useRunsStore((state) => state.runs)
+  const [selectedRunIds, setSelectedRunIds] = useState<string[]>([])
+  const [comparedRuns, setComparedRuns] = useState<
+    Array<{
+      run_id: string
+      status: 'running' | 'stopped' | 'completed' | 'failed'
+      estimated_cost_usd: number
+      confidence: number
+      tags: string[]
+    }>
+  >([])
+  const [tagFilter, setTagFilter] = useState('')
+
+  async function onCompare() {
+    if (!token || selectedRunIds.length < 2) {
+      return
+    }
+    const response = await compareRuns(token, selectedRunIds)
+    setComparedRuns(response.runs)
+  }
+
+  async function onUpdateTag(runId: string, tag: string) {
+    if (!token) {
+      return
+    }
+    const updated = await updateRunTags(token, runId, tag)
+    setComparedRuns((state) =>
+      state.map((item) => (item.run_id === runId ? { ...item, tags: updated.tags } : item)),
+    )
+  }
+
+  const filtered = comparedRuns.filter((run) =>
+    tagFilter.trim().length === 0 ? true : run.tags.some((tag) => tag.includes(tagFilter.trim())),
+  )
+
+  return (
+    <section className="compare-page">
+      <h2>Run Comparison</h2>
+      <p>Select 2 to 5 runs for comparison.</p>
+      <div className="compare-controls">
+        {runs.map((run) => (
+          <label key={run.run_id}>
+            <input
+              type="checkbox"
+              checked={selectedRunIds.includes(run.run_id)}
+              onChange={(event) =>
+                setSelectedRunIds((state) =>
+                  event.target.checked
+                    ? [...state, run.run_id].slice(0, 5)
+                    : state.filter((item) => item !== run.run_id),
+                )
+              }
+            />
+            {run.run_id}
+          </label>
+        ))}
+      </div>
+      <button type="button" onClick={() => void onCompare()}>
+        Compare selected runs
+      </button>
+      <label>
+        Filter by tag
+        <input
+          aria-label="Filter by tag"
+          value={tagFilter}
+          onChange={(event) => setTagFilter(event.target.value)}
+        />
+      </label>
+      <ComparePanel comparedRuns={filtered} onUpdateTag={onUpdateTag} />
+    </section>
+  )
+}
+
 function Shell() {
   const navigate = useNavigate()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -481,6 +559,11 @@ function Shell() {
         id: 'go-artifacts',
         label: 'Open Artifacts',
         run: () => navigate('/artifacts'),
+      },
+      {
+        id: 'go-compare',
+        label: 'Open Compare',
+        run: () => navigate('/compare'),
       },
       {
         id: 'go-tools',
@@ -581,6 +664,9 @@ function Shell() {
           <button type="button" onClick={() => navigate('/artifacts')}>
             Artifacts
           </button>
+          <button type="button" onClick={() => navigate('/compare')}>
+            Compare
+          </button>
           <button type="button" onClick={() => navigate('/tools')}>
             Tools
           </button>
@@ -593,6 +679,7 @@ function Shell() {
             <Route path="/" element={<RunsPage />} />
             <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="/artifacts" element={<ArtifactsPage />} />
+            <Route path="/compare" element={<ComparePage />} />
             <Route path="/tools" element={<ToolsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>

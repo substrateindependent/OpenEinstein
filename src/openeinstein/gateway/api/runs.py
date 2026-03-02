@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -21,9 +22,50 @@ class ForkRunRequest(BaseModel):
     event_index: int = 0
 
 
+class RunTagsRequest(BaseModel):
+    tags: list[str]
+
+
 def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
     router = APIRouter(prefix="/runs", tags=["runs"])
     control = deps.resolved_control_plane()
+    tags_path = Path(".openeinstein") / "run-tags.json"
+
+    def load_tags() -> dict[str, list[str]]:
+        if not tags_path.exists():
+            return {}
+        return json.loads(tags_path.read_text(encoding="utf-8"))
+
+    def save_tags(tags: dict[str, list[str]]) -> None:
+        tags_path.parent.mkdir(parents=True, exist_ok=True)
+        tags_path.write_text(json.dumps(tags, indent=2), encoding="utf-8")
+
+    @router.get("/compare")
+    def compare_runs(run_ids: str) -> dict[str, list[dict[str, Any]]]:
+        requested = [item.strip() for item in run_ids.split(",") if item.strip()]
+        tag_map = load_tags()
+        compared: list[dict[str, Any]] = []
+        for run_id in requested:
+            record = control.get_run(run_id)
+            estimated_cost = 0.0
+            for event in control.get_events(run_id):
+                estimated_cost = float(event.payload.get("estimated_cost_usd", estimated_cost))
+            confidence = {
+                "failed": 0.30,
+                "running": 0.72,
+                "stopped": 0.55,
+                "completed": 0.90,
+            }.get(record.status, 0.50)
+            compared.append(
+                {
+                    "run_id": record.run_id,
+                    "status": record.status,
+                    "estimated_cost_usd": estimated_cost,
+                    "confidence": confidence,
+                    "tags": tag_map.get(record.run_id, []),
+                }
+            )
+        return {"runs": compared}
 
     @router.get("")
     def list_runs() -> dict[str, Any]:
@@ -44,6 +86,14 @@ def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         return record.model_dump()
+
+    @router.post("/{run_id}/tags")
+    def update_run_tags(run_id: str, payload: RunTagsRequest) -> dict[str, Any]:
+        control.get_run(run_id)
+        tags = load_tags()
+        tags[run_id] = payload.tags
+        save_tags(tags)
+        return {"run_id": run_id, "tags": payload.tags}
 
     @router.post("/{run_id}/pause")
     def pause_run(run_id: str) -> dict[str, Any]:

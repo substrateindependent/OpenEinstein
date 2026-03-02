@@ -40,6 +40,11 @@
   - backend run fork endpoint (`POST /api/v1/runs/{run_id}/fork`)
   - websocket verbosity selector (`set_verbosity`) wired from UI toolbar
   - replay/verbosity integration test coverage in both UI and API layers
+- Added UI-019 compare and confidence tooling:
+  - compare route and panel for selecting 2-5 runs, viewing deltas, and weakest-confidence summary
+  - run tag update + tag filter UX on compare results
+  - backend compare/tags endpoints (`GET /api/v1/runs/compare`, `POST /api/v1/runs/{run_id}/tags`)
+  - compare integration tests for route mount, compare request path, and tag mutation wiring
 
 ## 2026-03-01
 

@@ -3,6 +3,7 @@ import type {
   ApprovalsResponse,
   ArtifactPreviewResponse,
   ArtifactsResponse,
+  CompareRunsResponse,
   ConfigValidationResponse,
   DashboardSettings,
   ExportRunResponse,
@@ -230,4 +231,33 @@ export async function validateDashboardConfig(
     }),
   })
   return parseJson<ConfigValidationResponse>(response)
+}
+
+export async function compareRuns(
+  token: string,
+  runIds: string[],
+  baseUrl = '',
+): Promise<CompareRunsResponse> {
+  const query = new URLSearchParams({ run_ids: runIds.join(',') })
+  const response = await fetch(`${baseUrl}/api/v1/runs/compare?${query.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return parseJson<CompareRunsResponse>(response)
+}
+
+export async function updateRunTags(
+  token: string,
+  runId: string,
+  tag: string,
+  baseUrl = '',
+): Promise<{ run_id: string; tags: string[] }> {
+  const response = await fetch(`${baseUrl}/api/v1/runs/${runId}/tags`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ tags: [tag] }),
+  })
+  return parseJson<{ run_id: string; tags: string[] }>(response)
 }

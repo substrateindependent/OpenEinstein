@@ -69,6 +69,14 @@ def test_run_endpoints_require_auth_and_support_lifecycle(tmp_path: Path) -> Non
     assert forked.status_code == 200
     assert forked.json()["parent_run_id"] == run_id
 
+    tags = client.post(f"/api/v1/runs/{run_id}/tags", json={"tags": ["baseline"]}, headers=headers)
+    assert tags.status_code == 200
+    assert tags.json()["tags"] == ["baseline"]
+
+    compared = client.get(f"/api/v1/runs/compare?run_ids={run_id},{forked.json()['run_id']}", headers=headers)
+    assert compared.status_code == 200
+    assert len(compared.json()["runs"]) == 2
+
     events = client.get(f"/api/v1/runs/{run_id}/events", headers=headers)
     assert events.status_code == 200
     assert len(events.json()["events"]) >= 1
