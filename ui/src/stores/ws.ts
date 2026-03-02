@@ -17,6 +17,7 @@ type WSStore = {
   connect: (token: string, onEvent: (event: WSEvent) => void) => void
   disconnect: () => void
   clearErrors: () => void
+  send: (message: Record<string, unknown>) => void
 }
 
 let activeSocket: WebSocket | null = null
@@ -139,6 +140,12 @@ export const useWSStore = create<WSStore>((set, get) => {
       if (get().errors.length > 0) {
         set({ errors: [] })
       }
+    },
+    send: (message) => {
+      if (!activeSocket || activeSocket.readyState !== WebSocket.OPEN) {
+        return
+      }
+      activeSocket.send(JSON.stringify(message))
     },
   }
 })

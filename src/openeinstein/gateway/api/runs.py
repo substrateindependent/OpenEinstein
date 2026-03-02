@@ -17,6 +17,10 @@ class StartRunRequest(BaseModel):
     parameters: dict[str, Any] | None = None
 
 
+class ForkRunRequest(BaseModel):
+    event_index: int = 0
+
+
 def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
     router = APIRouter(prefix="/runs", tags=["runs"])
     control = deps.resolved_control_plane()
@@ -58,6 +62,29 @@ def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
         control.stop_run(run_id, reason="stopped")
         event_hub.publish("run_state", {"run_id": run_id, "status": "stopped"})
         return {"run_id": run_id, "status": control.get_status(run_id)}
+
+    @router.post("/{run_id}/fork")
+    def fork_run(run_id: str, payload: ForkRunRequest) -> dict[str, Any]:
+        control.get_run(run_id)
+        forked_run_id = control.start_run()
+        control.emit_event(
+            forked_run_id,
+            "forked_from",
+            {"parent_run_id": run_id, "event_index": payload.event_index},
+        )
+        event_hub.publish(
+            "run_state",
+            {
+                "run_id": forked_run_id,
+                "status": control.get_status(forked_run_id),
+                "parent_run_id": run_id,
+            },
+        )
+        return {
+            "run_id": forked_run_id,
+            "status": control.get_status(forked_run_id),
+            "parent_run_id": run_id,
+        }
 
     @router.get("/{run_id}/events")
     def run_events(run_id: str, after_seq: int = 0, limit: int = 100) -> dict[str, Any]:

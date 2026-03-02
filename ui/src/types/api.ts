@@ -56,6 +56,12 @@ export type ExportRunResponse = {
   download_url: string
 }
 
+export type ForkRunResponse = {
+  run_id: string
+  status: RunStatus
+  parent_run_id?: string
+}
+
 export type ToolRecord = {
   id: string
   status: string

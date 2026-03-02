@@ -14,6 +14,7 @@ import {
   bulkDecideApprovals,
   decideApproval,
   exportRun,
+  forkRun,
   listApprovals,
   listTools,
   listRunArtifacts,
@@ -53,6 +54,9 @@ function RunsPage() {
   const runCosts = useCostStore((state) => state.runCosts)
   const errors = useWSStore((state) => state.errors)
   const clearErrors = useWSStore((state) => state.clearErrors)
+  const wsSend = useWSStore((state) => state.send)
+  const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null)
+  const [verbosity, setVerbosity] = useState<'minimal' | 'normal' | 'verbose' | 'debug'>('normal')
 
   async function onStartRun() {
     if (!token) {
@@ -100,6 +104,28 @@ function RunsPage() {
     applyEvent({ type: 'run_state', payload: { run_id: runId, status: stopped.status } })
   }
 
+  async function onForkFromEvent(eventIndex: number) {
+    if (!token || !selectedRunId) {
+      return
+    }
+    const forked = await forkRun(token, selectedRunId, eventIndex)
+    setRuns([
+      ...runs,
+      {
+        run_id: forked.run_id,
+        status: forked.status,
+        started_at: new Date().toISOString(),
+      },
+    ])
+    applyEvent({ type: 'run_state', payload: { run_id: forked.run_id, status: forked.status } })
+    selectRun(forked.run_id)
+  }
+
+  function onSetVerbosity(level: 'minimal' | 'normal' | 'verbose' | 'debug') {
+    setVerbosity(level)
+    wsSend({ type: 'set_verbosity', payload: { level } })
+  }
+
   async function onDecideApproval(approvalId: string, decision: ApprovalDecision) {
     if (!token) {
       return
@@ -116,9 +142,22 @@ function RunsPage() {
   }
 
   const timelineEvents = selectedRunId ? timelineByRun[selectedRunId] ?? [] : []
+  useEffect(() => {
+    if (timelineEvents.length === 0) {
+      setSelectedEventIndex(null)
+      return
+    }
+    setSelectedEventIndex((current) => {
+      if (current === null || current >= timelineEvents.length) {
+        return 0
+      }
+      return current
+    })
+  }, [timelineEvents])
   const inlineApprovals = selectedRunId
     ? pendingApprovals.filter((item) => item.run_id === selectedRunId)
     : pendingApprovals
+  const selectedEvent = selectedEventIndex !== null ? timelineEvents[selectedEventIndex] ?? null : null
   const currentRunCostUsd = selectedRunId ? runCosts[selectedRunId]?.estimated_cost_usd ?? 0 : 0
 
   return (
@@ -146,11 +185,17 @@ function RunsPage() {
         loading={loading}
         selectedRunId={selectedRunId}
         timelineEvents={timelineEvents}
+        selectedEventIndex={selectedEventIndex}
+        selectedEvent={selectedEvent}
+        verbosity={verbosity}
         onPauseRun={onPauseRun}
         onResumeRun={onResumeRun}
         onStopRun={onStopRun}
         onSelectRun={selectRun}
         onStartRun={onStartRun}
+        onSetVerbosity={onSetVerbosity}
+        onForkFromEvent={onForkFromEvent}
+        onSelectEvent={setSelectedEventIndex}
         currentRunCostUsd={currentRunCostUsd}
       />
       <RunWizard onStart={onStartRun} />

@@ -46,6 +46,8 @@ describe('ws store', () => {
 
     socket?.onopen?.()
     expect(useWSStore.getState().status).toBe('connected')
+    useWSStore.getState().send({ type: 'set_verbosity', payload: { level: 'debug' } })
+    expect(socket?.sent.some((item) => item.includes('set_verbosity'))).toBe(true)
 
     socket?.onmessage?.(
       new MessageEvent('message', {

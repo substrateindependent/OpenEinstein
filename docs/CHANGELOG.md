@@ -35,6 +35,11 @@
   - artifact metadata/preview/download resolution across export and control-plane artifact paths
   - run export artifact attachment through control-plane artifact registry
 - Added frontend and backend integration tests for approvals, artifacts/export, cost fan-out, tools/settings actions, and command palette dispatch.
+- Added UI-018 replay controls:
+  - timeline event inspector with "Re-run from here" action
+  - backend run fork endpoint (`POST /api/v1/runs/{run_id}/fork`)
+  - websocket verbosity selector (`set_verbosity`) wired from UI toolbar
+  - replay/verbosity integration test coverage in both UI and API layers
 
 ## 2026-03-01
 

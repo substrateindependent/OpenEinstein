@@ -6,6 +6,7 @@ import type {
   ConfigValidationResponse,
   DashboardSettings,
   ExportRunResponse,
+  ForkRunResponse,
   RunsResponse,
   StartRunResponse,
   ToolsResponse,
@@ -165,6 +166,23 @@ export async function exportRun(
     headers: { Authorization: `Bearer ${token}` },
   })
   return parseJson<ExportRunResponse>(response)
+}
+
+export async function forkRun(
+  token: string,
+  runId: string,
+  eventIndex: number,
+  baseUrl = '',
+): Promise<ForkRunResponse> {
+  const response = await fetch(`${baseUrl}/api/v1/runs/${runId}/fork`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ event_index: eventIndex }),
+  })
+  return parseJson<ForkRunResponse>(response)
 }
 
 export async function listTools(token: string, baseUrl = ''): Promise<ToolsResponse> {

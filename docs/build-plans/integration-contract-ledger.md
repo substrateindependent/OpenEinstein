@@ -1395,3 +1395,49 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
     - `ui/src/App.tools-settings.test.tsx` verifies tools test-connection wiring and settings validation call path.
     - `ui/src/App.commands.test.tsx` verifies command palette navigation + mutation dispatch.
     - `tests/integration/test_dashboard_api_contract_integration.py` verifies export/artifact endpoint reachability and approvals mutation wiring.
+
+## UI-018: Replay inspector, verbosity control, and fork-from-event flow
+
+- Files Created:
+  - `ui/src/App.replay.test.tsx`
+- Files Modified:
+  - Frontend:
+    - `ui/src/App.tsx`
+    - `ui/src/App.css`
+    - `ui/src/components/runs/RunWorkspace.tsx`
+    - `ui/src/components/runs/RunWorkspace.test.tsx`
+    - `ui/src/stores/ws.ts`
+    - `ui/src/stores/ws.test.ts`
+    - `ui/src/lib/apiClient.ts`
+    - `ui/src/types/api.ts`
+  - Backend:
+    - `src/openeinstein/gateway/api/runs.py`
+    - `tests/integration/test_dashboard_api_contract_integration.py`
+- Interfaces Exposed:
+  - HTTP:
+    - `POST /api/v1/runs/{run_id}/fork` (`event_index` payload) creates forked run and emits lineage metadata.
+  - Frontend runtime:
+    - Run timeline event inspector with selected event payload rendering.
+    - "Re-run from here" action path to fork endpoint.
+    - Toolbar verbosity selector (`minimal|normal|verbose|debug`) sending WS `set_verbosity`.
+  - WS store:
+    - `useWSStore(...).send(message)` for typed outbound control messages.
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: UI-010+ run workspace baseline and WS control channel wiring.
+- Depended On By: UI-019 compare/confidence and advanced campaign inspection surfaces.
+- Verification Commands:
+  - `pnpm test`
+  - `pnpm run typecheck`
+  - `.venv/bin/pytest tests/integration/test_dashboard_api_contract_integration.py --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path:
+    - selecting timeline events mounts the inspector in `RunWorkspace`;
+    - rerun action calls fork endpoint through API client;
+    - verbosity selector dispatches WS `set_verbosity` through store send path.
+  - Integration tests:
+    - `ui/src/App.replay.test.tsx` verifies WS verbosity send + fork endpoint invocation.
+    - `ui/src/components/runs/RunWorkspace.test.tsx` verifies inspector controls.
+    - `tests/integration/test_dashboard_api_contract_integration.py` verifies fork endpoint reachability and parent linkage.

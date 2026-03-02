@@ -65,6 +65,10 @@ def test_run_endpoints_require_auth_and_support_lifecycle(tmp_path: Path) -> Non
     stopped = client.post(f"/api/v1/runs/{run_id}/stop", headers=headers)
     assert stopped.status_code == 200
 
+    forked = client.post(f"/api/v1/runs/{run_id}/fork", json={"event_index": 0}, headers=headers)
+    assert forked.status_code == 200
+    assert forked.json()["parent_run_id"] == run_id
+
     events = client.get(f"/api/v1/runs/{run_id}/events", headers=headers)
     assert events.status_code == 200
     assert len(events.json()["events"]) >= 1

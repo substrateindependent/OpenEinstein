@@ -6,11 +6,17 @@ type RunWorkspaceProps = {
   loading: boolean
   selectedRunId: string | null
   timelineEvents: TimelineEvent[]
+  selectedEventIndex: number | null
+  selectedEvent: TimelineEvent | null
+  verbosity: 'minimal' | 'normal' | 'verbose' | 'debug'
   onPauseRun: (runId: string) => Promise<void>
   onResumeRun: (runId: string) => Promise<void>
   onStopRun: (runId: string) => Promise<void>
   onSelectRun: (runId: string) => void
   onStartRun: () => Promise<void>
+  onSetVerbosity: (level: 'minimal' | 'normal' | 'verbose' | 'debug') => void
+  onForkFromEvent: (eventIndex: number) => Promise<void>
+  onSelectEvent: (eventIndex: number) => void
   currentRunCostUsd: number
 }
 
@@ -19,11 +25,17 @@ export function RunWorkspace({
   loading,
   selectedRunId,
   timelineEvents,
+  selectedEventIndex,
+  selectedEvent,
+  verbosity,
   onPauseRun,
   onResumeRun,
   onStopRun,
   onSelectRun,
   onStartRun,
+  onSetVerbosity,
+  onForkFromEvent,
+  onSelectEvent,
   currentRunCostUsd,
 }: RunWorkspaceProps) {
   return (
@@ -31,6 +43,21 @@ export function RunWorkspace({
       <div className="run-toolbar">
         <h2>Run Detail</h2>
         <div className="toolbar-actions">
+          <label>
+            Verbosity
+            <select
+              aria-label="Verbosity"
+              value={verbosity}
+              onChange={(event) =>
+                onSetVerbosity(event.target.value as 'minimal' | 'normal' | 'verbose' | 'debug')
+              }
+            >
+              <option value="minimal">minimal</option>
+              <option value="normal">normal</option>
+              <option value="verbose">verbose</option>
+              <option value="debug">debug</option>
+            </select>
+          </label>
           <button type="button" onClick={() => void onStartRun()}>
             Start Run
           </button>
@@ -80,14 +107,32 @@ export function RunWorkspace({
           <ul>
             {timelineEvents.map((event, index) => (
               <li key={`${event.ts}-${index}`}>
-                <details open>
+                <details open={selectedEventIndex === index}>
                   <summary>{event.summary}</summary>
+                  <button type="button" onClick={() => onSelectEvent(index)}>
+                    Inspect
+                  </button>
                   <pre>{JSON.stringify(event.payload, null, 2)}</pre>
                 </details>
               </li>
             ))}
           </ul>
           {timelineEvents.length === 0 && <p>No timeline events yet.</p>}
+          {selectedEvent && (
+            <div className="event-inspector">
+              <h4>Event Inspector</h4>
+              <pre>{JSON.stringify(selectedEvent.payload, null, 2)}</pre>
+              <button
+                type="button"
+                onClick={() =>
+                  selectedEventIndex !== null && void onForkFromEvent(selectedEventIndex)
+                }
+                disabled={selectedEventIndex === null}
+              >
+                Re-run from here
+              </button>
+            </div>
+          )}
         </div>
 
         <aside className="run-panel sidebar-panel">
