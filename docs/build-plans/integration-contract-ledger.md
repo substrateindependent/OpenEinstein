@@ -1172,3 +1172,145 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: installed console scripts expose MCP adapters and CLI workflows in clean virtualenv installs.
   - Integration test: `tests/integration/test_packaging_install.py` builds wheel/sdist and validates clean-venv install + command surface.
+
+## UI-001: UI epic spec and contract scaffold
+
+- Files Created:
+  - `docs/epics/EPIC-001-control-ui.md`
+  - `tests/unit/test_ui_epic_contract.py`
+- Files Modified: none.
+- Interfaces Exposed:
+  - Integration contract matrix for `IC-01..IC-22` with runtime paths and integration test IDs.
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: `docs/UI-UX-STRATEGY.md`, governance docs and existing architecture docs.
+- Depended On By: UI implementation tickets UI-002+.
+- Verification Commands:
+  - `.venv/bin/pytest tests/unit/test_ui_epic_contract.py --tb=short -q`
+- Consumption Proof:
+  - Runtime path: implementation planning and ticket execution read this file as the source contract.
+  - Integration test: `tests/unit/test_ui_epic_contract.py` enforces complete IC row coverage and non-TBD wiring.
+
+## UI-002: Frontend workspace and verification toolchain
+
+- Files Created:
+  - `ui/` Vite project scaffold
+  - root `package.json`
+  - `ui/src/main.test.tsx`
+  - `ui/vitest.setup.ts`
+- Files Modified:
+  - `ui/package.json`
+  - `ui/vite.config.ts`
+  - `ui/tsconfig.app.json`
+  - `ui/src/App.tsx`
+  - `ui/src/App.css`
+  - `ui/src/index.css`
+- Interfaces Exposed:
+  - Root scripts: `pnpm test`, `pnpm run typecheck`, `pnpm run build`.
+  - UI test/runtime mount contract for app root.
+- Database Changes: none.
+- Config Changes: frontend build now outputs to `dist/control-ui`.
+- Depends On: UI-001.
+- Depended On By: UI-003+.
+- Verification Commands:
+  - `pnpm test`
+  - `pnpm run typecheck`
+  - `pnpm run build`
+- Consumption Proof:
+  - Runtime path: `ui/src/main.tsx` mounts `App`.
+  - Integration test: `ui/src/main.test.tsx`.
+
+## UI-003 / UI-004: Dashboard app factory and CLI command
+
+- Files Created:
+  - `src/openeinstein/gateway/web/config.py`
+  - `src/openeinstein/gateway/web/app.py`
+  - `src/openeinstein/gateway/web/__init__.py`
+  - `tests/integration/test_dashboard_app_integration.py`
+  - `tests/integration/test_dashboard_cli_integration.py`
+- Files Modified:
+  - `src/openeinstein/gateway/__init__.py`
+  - `src/openeinstein/cli/main.py`
+  - `pyproject.toml` (FastAPI/Uvicorn deps)
+- Interfaces Exposed:
+  - `DashboardConfig`, `DashboardDeps`, `create_dashboard_app`.
+  - CLI command: `openeinstein dashboard`.
+- Database Changes: none.
+- Config Changes:
+  - Dashboard host/port/base-path controls available via CLI flags and app config model.
+- Depends On: UI-002.
+- Depended On By: auth/api/ws tickets.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_dashboard_app_integration.py tests/integration/test_dashboard_cli_integration.py --tb=short -q`
+  - `.venv/bin/pip install -e ".[dev]"`
+- Consumption Proof:
+  - Runtime path: CLI command constructs app and starts Uvicorn.
+  - Integration tests validate route reachability and CLI launch wiring.
+
+## UI-005 / UI-006 / UI-007: Auth, WS, and API v1 baseline
+
+- Files Created:
+  - `src/openeinstein/gateway/auth.py`
+  - `src/openeinstein/gateway/events.py`
+  - `src/openeinstein/gateway/ws/protocol.py`
+  - `src/openeinstein/gateway/ws/handler.py`
+  - `src/openeinstein/gateway/ws/__init__.py`
+  - `src/openeinstein/gateway/api/__init__.py`
+  - `src/openeinstein/gateway/api/auth.py`
+  - `src/openeinstein/gateway/api/runs.py`
+  - `src/openeinstein/gateway/api/approvals.py`
+  - `src/openeinstein/gateway/api/artifacts.py`
+  - `src/openeinstein/gateway/api/tools.py`
+  - `src/openeinstein/gateway/api/config.py`
+  - `src/openeinstein/gateway/api/system.py`
+  - `tests/integration/test_dashboard_api_contract_integration.py`
+  - `tests/integration/test_dashboard_ws_integration.py`
+- Files Modified:
+  - `src/openeinstein/gateway/web/app.py`
+  - `src/openeinstein/gateway/control_plane.py`
+  - `src/openeinstein/tools/tool_bus.py`
+- Interfaces Exposed:
+  - Pairing endpoints: `/api/v1/pair/start`, `/api/v1/pair/complete`.
+  - Protected API routes: `/api/v1/runs*`, `/api/v1/approvals*`, `/api/v1/artifacts*`, `/api/v1/tools*`, `/api/v1/config*`.
+  - WS control route: `/ws/control`.
+- Database Changes: none.
+- Config Changes:
+  - Session timeout in `DashboardConfig` now drives token expiry.
+- Depends On: UI-003/UI-004.
+- Depended On By: frontend data wiring tickets.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_dashboard_api_contract_integration.py tests/integration/test_dashboard_ws_integration.py --tb=short -q`
+- Consumption Proof:
+  - Runtime path: UI-facing routes are mounted in `create_dashboard_app`.
+  - Integration tests validate auth gating, run lifecycle, WS connect/sync/run command flow.
+
+## UI-008 / UI-009: Frontend shell routing and data plumbing baseline
+
+- Files Created:
+  - `ui/src/App.routes.test.tsx`
+  - `ui/src/stores/runs.ts`
+  - `ui/src/stores/runs.test.ts`
+  - `ui/src/stores/session.ts`
+  - `ui/src/stores/ws.ts`
+  - `ui/src/lib/apiClient.ts`
+  - `ui/src/types/api.ts`
+  - `ui/src/types/ws.ts`
+- Files Modified:
+  - `ui/src/App.tsx`
+  - `ui/src/App.css`
+  - `ui/src/index.css`
+- Interfaces Exposed:
+  - Mounted Runs and Settings routes.
+  - Zustand stores for session/runs/ws.
+  - API client contract for pairing and runs lifecycle calls.
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: UI-005/UI-006/UI-007.
+- Depended On By: advanced UI flow tickets (UI-010+).
+- Verification Commands:
+  - `pnpm test`
+  - `pnpm run typecheck`
+  - `pnpm run build`
+- Consumption Proof:
+  - Runtime path: App bootstrap performs pairing, loads runs, and binds WS events into store state.
+  - Integration/UI tests validate route mounting and state updates from event application.

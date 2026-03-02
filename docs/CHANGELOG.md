@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-03-02
+
+- Added UI epic scaffold doc: `docs/epics/EPIC-001-control-ui.md` with IC-01..IC-22 mapping and verification matrix.
+- Bootstrapped frontend workspace under `ui/` (Vite + React + TypeScript + Zustand + Vitest/RTL + Playwright) and root `pnpm` scripts.
+- Added dashboard web server foundation:
+  - `create_dashboard_app` FastAPI factory
+  - static SPA serving + fallback routing
+  - `/api/v1/health` and `/api/v1/version`
+- Added `openeinstein dashboard` CLI command with host/port/base-path/no-open options and Uvicorn startup.
+- Added dashboard pairing/token auth subsystem and protected API dependency enforcement.
+- Added dashboard websocket endpoint `/ws/control` with connect/sync/run-command handling and heartbeat events.
+- Added API v1 route modules for runs, approvals, artifacts, tools, config, and system surfaces.
+- Added initial frontend control shell with mounted Runs/Settings routes and status/top/nav layout.
+- Added frontend API and WS data plumbing baseline:
+  - session store
+  - runs store with WS event application
+  - websocket store for connection status and subscriptions
+  - run bootstrap/start actions
+- Added new integration/unit coverage for UI contracts:
+  - epic contract doc checks
+  - dashboard app + CLI wiring
+  - auth-protected API run lifecycle
+  - websocket handshake/sync command flow
+  - frontend route and store wiring tests
+
 ## 2026-03-01
 
 - Bootstrapped repository structure for OpenEinstein Phase 0.

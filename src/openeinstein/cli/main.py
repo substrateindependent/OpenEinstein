@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 import shutil
+import webbrowser
 from pathlib import Path
 
 import typer
+import uvicorn
 import yaml  # type: ignore[import-untyped]
 from rich import print as rprint
 
@@ -14,6 +16,7 @@ from openeinstein import __version__
 from openeinstein.campaigns import CampaignConfigLoader
 from openeinstein.evals import EvalRunner, discover_eval_suites
 from openeinstein.gateway import FileBackedControlPlane
+from openeinstein.gateway.web import DashboardConfig, DashboardDeps, create_dashboard_app
 from openeinstein.persistence import CampaignDB
 from openeinstein.reports import CampaignReportGenerator
 from openeinstein.security import ApprovalsStore, SecurityScanner
@@ -49,6 +52,44 @@ app.add_typer(report_app, name="report")
 def version() -> None:
     """Print CLI version."""
     rprint(f"OpenEinstein {__version__}")
+
+
+@app.command("dashboard")
+def dashboard(
+    port: int = typer.Option(8420, "--port", min=1, max=65535),
+    host: str = typer.Option("127.0.0.1", "--host"),
+    base_path: str = typer.Option("/", "--base-path"),
+    no_open: bool = typer.Option(False, "--no-open", help="Do not open a browser tab"),
+    allow_insecure_remote: bool = typer.Option(
+        False,
+        "--allow-insecure-remote",
+        help="Allow non-local HTTP binding without TLS safeguards",
+    ),
+) -> None:
+    """Start the dashboard web server and optionally open it in a browser."""
+    if host not in {"127.0.0.1", "localhost"} and not allow_insecure_remote:
+        raise typer.BadParameter(
+            "Remote HTTP access is blocked by default. Use --allow-insecure-remote explicitly."
+        )
+
+    config = DashboardConfig(
+        base_path=base_path,
+        bind=host,
+        port=port,
+        allow_insecure_remote=allow_insecure_remote,
+    )
+    dashboard_app = create_dashboard_app(
+        config=config,
+        deps=DashboardDeps(control_plane=_control_plane()),
+    )
+
+    url_path = "/" if base_path in {"", "/"} else f"/{base_path.strip('/')}/"
+    url = f"http://{host}:{port}{url_path}"
+    if not no_open:
+        webbrowser.open(url)
+
+    rprint(f"Dashboard listening at {url}")
+    uvicorn.run(dashboard_app, host=host, port=port, log_level="info")
 
 
 @app.command("init")

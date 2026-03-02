@@ -48,6 +48,8 @@ class ControlPlane(Protocol):
 
     def start_run(self, run_id: str | None = None) -> str: ...
 
+    def latest_run_id(self) -> str | None: ...
+
     def emit_event(
         self, run_id: str, event_type: str, payload: dict[str, Any] | None = None
     ) -> RunEvent: ...
@@ -55,6 +57,10 @@ class ControlPlane(Protocol):
     def get_events(self, run_id: str) -> list[RunEvent]: ...
 
     def get_status(self, run_id: str) -> RunStatus: ...
+
+    def list_runs(self) -> list[RunRecord]: ...
+
+    def get_run(self, run_id: str) -> RunRecord: ...
 
     def stop_run(self, run_id: str, reason: str | None = None) -> None: ...
 
@@ -111,13 +117,20 @@ class FileBackedControlPlane:
         return f"run-{uuid.uuid4().hex[:12]}"
 
     def latest_run_id(self) -> str | None:
+        records = self.list_runs()
+        if not records:
+            return None
+        return records[-1].run_id
+
+    def list_runs(self) -> list[RunRecord]:
         records: list[RunRecord] = []
         for path in self._runs_dir.glob("*.json"):
             records.append(RunRecord.model_validate_json(path.read_text(encoding="utf-8")))
-        if not records:
-            return None
         records.sort(key=lambda record: record.updated_at)
-        return records[-1].run_id
+        return records
+
+    def get_run(self, run_id: str) -> RunRecord:
+        return self._load_run_record(run_id)
 
     def start_run(self, run_id: str | None = None) -> str:
         created_run_id = run_id or self.issue_run_id()

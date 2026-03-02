@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpenEinstein Control UI — Hi-Fi Wireframes</title>
+<style>
+  :root {
+    --bg-primary: #0f1117;
+    --bg-secondary: #161822;
+    --bg-tertiary: #1c1f2e;
+    --bg-card: #1e2132;
+    --bg-hover: #252840;
+    --bg-active: #2a2d45;
+    --border: #2a2d45;
+    --border-light: #353856;
+    --text-primary: #e4e6f0;
+    --text-secondary: #8b8fa8;
+    --text-muted: #5c6080;
+    --accent: #6c72cb;
+    --accent-light: #8389e0;
+    --accent-bg: rgba(108,114,203,0.12);
+    --green: #3ecf8e;
+    --green-bg: rgba(62,207,142,0.12);
+    --yellow: #f0c246;
+    --yellow-bg: rgba(240,194,70,0.12);
+    --red: #ef5f5f;
+    --red-bg: rgba(239,95,95,0.12);
+    --blue: #5ba4f5;
+    --blue-bg: rgba(91,164,245,0.12);
+    --orange: #e8884a;
+    --orange-bg: rgba(232,136,74,0.12);
+    --nav-width: 220px;
+    --topbar-height: 52px;
+    --statusbar-height: 36px;
+    --radius: 8px;
+    --radius-sm: 6px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; line-height: 1.5; overflow: hidden; height: 100vh; }
+
+  /* Layout */
+  .app { display: flex; flex-direction: column; height: 100vh; }
+  .topbar { height: var(--topbar-height); background: var(--bg-secondary); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 12px; flex-shrink: 0; z-index: 100; }
+  .main { display: flex; flex: 1; overflow: hidden; }
+  .nav { width: var(--nav-width); background: var(--bg-secondary); border-right: 1px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; padding: 8px 0; }
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+  .statusbar { height: var(--statusbar-height); background: var(--bg-secondary); border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; font-size: 12px; color: var(--text-secondary); flex-shrink: 0; }
+
+  /* Topbar */
+  .topbar-logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; color: var(--text-primary); }
+  .topbar-logo svg { width: 20px; height: 20px; }
+  .topbar-spacer { flex: 1; }
+  .cmd-palette { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 12px; color: var(--text-muted); font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; min-width: 220px; }
+  .cmd-palette:hover { border-color: var(--border-light); color: var(--text-secondary); }
+  .cmd-palette kbd { background: var(--bg-active); border-radius: 3px; padding: 1px 5px; font-size: 11px; font-family: inherit; }
+  .gateway-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .cost-badge { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 10px; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+  .cost-badge:hover { border-color: var(--accent); color: var(--accent-light); }
+  .notif-btn { position: relative; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; }
+  .notif-btn:hover { color: var(--text-primary); }
+  .notif-badge { position: absolute; top: -2px; right: -4px; background: var(--red); color: white; font-size: 9px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; }
+  .settings-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; }
+  .settings-btn:hover { color: var(--text-primary); }
+
+  /* Nav */
+  .nav-section { padding: 4px 8px; }
+  .nav-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); padding: 8px 12px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radius-sm); color: var(--text-secondary); cursor: pointer; font-size: 13px; margin: 1px 0; position: relative; }
+  .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .nav-item.active { background: var(--accent-bg); color: var(--accent-light); }
+  .nav-item svg { width: 16px; height: 16px; opacity: 0.7; flex-shrink: 0; }
+  .nav-item.active svg { opacity: 1; }
+  .nav-badge { margin-left: auto; background: var(--red); color: white; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 6px; min-width: 18px; text-align: center; }
+  .nav-badge.muted { background: var(--bg-active); color: var(--text-muted); }
+  .nav-spacer { flex: 1; }
+
+  /* Cards & Tables */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .page-title { font-size: 18px; font-weight: 600; }
+  .page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+  .btn { padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-primary); font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--bg-hover); border-color: var(--border-light); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-light); }
+  .btn-success { background: var(--green); border-color: var(--green); color: #0f1117; font-weight: 600; }
+  .btn-danger { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  .card:hover { border-color: var(--border-light); }
+
+  /* Status badges */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .badge-running { background: var(--blue-bg); color: var(--blue); }
+  .badge-completed { background: var(--green-bg); color: var(--green); }
+  .badge-paused { background: var(--yellow-bg); color: var(--yellow); }
+  .badge-failed { background: var(--red-bg); color: var(--red); }
+  .badge-pending { background: var(--orange-bg); color: var(--orange); }
+
+  .risk-badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .risk-low { background: var(--green-bg); color: var(--green); }
+  .risk-medium { background: var(--yellow-bg); color: var(--yellow); }
+  .risk-high { background: var(--red-bg); color: var(--red); }
+
+  /* Run list */
+  .run-row { display: grid; grid-template-columns: 60px 1.5fr 1fr 100px 80px 80px 100px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; gap: 12px; }
+  .run-row:hover { background: var(--bg-hover); }
+  .run-row-header { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); cursor: default; }
+  .run-row-header:hover { background: transparent; }
+  .run-id { color: var(--accent-light); font-weight: 600; font-size: 12px; }
+  .run-name { font-weight: 500; }
+  .run-campaign { color: var(--text-secondary); font-size: 12px; }
+  .run-duration { color: var(--text-secondary); font-size: 12px; }
+  .run-cost { font-size: 12px; color: var(--text-secondary); }
+
+  /* Progress */
+  .progress-bar { height: 4px; background: var(--bg-active); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .progress-fill.blue { background: var(--blue); }
+  .progress-fill.green { background: var(--green); }
+
+  /* Run detail */
+  .run-detail-layout { display: grid; grid-template-columns: 280px 1fr 300px; gap: 16px; height: calc(100vh - var(--topbar-height) - var(--statusbar-height) - 48px); }
+  .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; }
+  .panel-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .panel-body { flex: 1; overflow-y: auto; padding: 12px; }
+
+  /* Timeline events */
+  .timeline-event { display: flex; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 4px; cursor: pointer; }
+  .timeline-event:hover { background: var(--bg-hover); }
+  .timeline-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .timeline-icon.tool { background: var(--blue-bg); color: var(--blue); }
+  .timeline-icon.approval { background: var(--orange-bg); color: var(--orange); }
+  .timeline-icon.artifact { background: var(--green-bg); color: var(--green); }
+  .timeline-icon.error { background: var(--red-bg); color: var(--red); }
+  .timeline-icon.info { background: var(--accent-bg); color: var(--accent-light); }
+  .timeline-content { flex: 1; min-width: 0; }
+  .timeline-title { font-size: 12px; font-weight: 500; }
+  .timeline-desc { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .timeline-meta { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
+  /* Approval cards */
+  .approval-card { border-left: 3px solid; padding: 16px; margin-bottom: 12px; background: var(--bg-card); border-radius: 0 var(--radius) var(--radius) 0; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .approval-card.high { border-left-color: var(--red); }
+  .approval-card.medium { border-left-color: var(--yellow); }
+  .approval-card.low { border-left-color: var(--green); }
+  .approval-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .approval-what { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .approval-why { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+  .approval-preview { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; white-space: pre-wrap; max-height: 120px; overflow-y: auto; }
+  .approval-actions { display: flex; gap: 8px; align-items: center; }
+  .approval-timer { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+
+  /* Artifacts */
+  .artifact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .artifact-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; }
+  .artifact-card:hover { border-color: var(--accent); }
+  .artifact-preview { height: 120px; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 28px; }
+  .artifact-info { padding: 10px 12px; }
+  .artifact-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .artifact-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Tool health */
+  .tool-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .tool-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .tool-status.healthy { background: var(--green); box-shadow: 0 0 4px var(--green); }
+  .tool-status.degraded { background: var(--yellow); box-shadow: 0 0 4px var(--yellow); }
+  .tool-status.down { background: var(--red); box-shadow: 0 0 4px var(--red); }
+  .tool-info { flex: 1; }
+  .tool-name { font-weight: 500; font-size: 13px; }
+  .tool-type { font-size: 11px; color: var(--text-muted); }
+  .tool-stats { text-align: right; font-size: 11px; color: var(--text-secondary); }
+
+  /* Cost breakdown */
+  .cost-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .cost-label { font-size: 12px; color: var(--text-secondary); }
+  .cost-value { font-size: 12px; font-weight: 600; }
+  .cost-bar { height: 6px; background: var(--bg-active); border-radius: 3px; margin-top: 4px; }
+  .cost-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+
+  /* Wizard */
+  .wizard-steps { display: flex; gap: 0; margin-bottom: 24px; }
+  .wizard-step { flex: 1; text-align: center; padding: 10px; font-size: 12px; color: var(--text-muted); position: relative; }
+  .wizard-step::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--border); }
+  .wizard-step.active { color: var(--accent-light); font-weight: 600; }
+  .wizard-step.active::after { background: var(--accent); }
+  .wizard-step.done { color: var(--green); }
+  .wizard-step.done::after { background: var(--green); }
+  .wizard-step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-active); font-size: 11px; font-weight: 700; margin-right: 6px; }
+  .wizard-step.active .wizard-step-num { background: var(--accent); color: white; }
+  .wizard-step.done .wizard-step-num { background: var(--green); color: var(--bg-primary); }
+
+  .wizard-content { max-width: 640px; margin: 0 auto; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 500; margin-bottom: 4px; display: block; }
+  .form-hint { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .form-input { width: 100%; padding: 8px 12px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px; font-family: inherit; }
+  .form-input:focus { outline: none; border-color: var(--accent); }
+  .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c6080' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+
+  /* Pack cards */
+  .pack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .pack-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; }
+  .pack-card:hover { border-color: var(--accent); }
+  .pack-card.selected { border-color: var(--accent); background: var(--accent-bg); }
+  .pack-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--accent-bg); color: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+  .pack-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .pack-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+  .pack-meta { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+  /* Preflight */
+  .preflight-section { margin-bottom: 16px; }
+  .preflight-section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; }
+  .preflight-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12px; }
+  .preflight-icon { width: 20px; text-align: center; }
+  .estimate-card { display: flex; gap: 16px; }
+  .estimate-box { flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+  .estimate-value { font-size: 20px; font-weight: 700; color: var(--accent-light); }
+  .estimate-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Tab bar */
+  .tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 16px; }
+  .tab { padding: 8px 14px; font-size: 12px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab:hover { color: var(--text-secondary); }
+  .tab.active { color: var(--accent-light); border-bottom-color: var(--accent); }
+
+  /* View switching */
+  .view { display: none; }
+  .view.active { display: block; }
+  .view-rundetail.active { display: block; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+  /* Spinner */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+
+  /* Pulse animation for live elements */
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+
+  /* Notification banner */
+  .approval-banner { background: var(--orange-bg); border: 1px solid rgba(232,136,74,0.3); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .approval-banner-text { flex: 1; font-size: 12px; color: var(--orange); font-weight: 500; }
+
+  /* Inline cost widget */
+  .cost-widget { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; }
+  .cost-total { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+  .cost-total-label { font-size: 11px; color: var(--text-muted); }
+  .cost-budget { margin-top: 8px; }
+  .cost-budget-text { font-size: 11px; color: var(--text-secondary); display: flex; justify-content: space-between; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+      OpenEinstein
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="cmd-palette" onclick="showView('wizard')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      Search commands...
+      <kbd>&#8984;K</kbd>
+    </div>
+    <div class="gateway-status">
+      <span class="status-dot"></span>
+      Connected
+    </div>
+    <div class="cost-badge" onclick="showView('rundetail')">$2.14 today</div>
+    <button class="notif-btn" onclick="showView('approvals')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-badge">3</span>
+    </button>
+    <button class="settings-btn" onclick="showView('settings')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2m-9-11h2m18 0h2m-4.22-5.78l1.42-1.42m-15.56 0l1.42 1.42m0 11.32l-1.42 1.42m15.56 0l-1.42-1.42"/></svg>
+    </button>
+  </div>
+
+  <div class="main">
+    <!-- Left Nav -->
+    <div class="nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Main</div>
+        <div class="nav-item active" id="nav-runs" onclick="showView('runs')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Runs
+          <span class="nav-badge muted">12</span>
+        </div>
+        <div class="nav-item" id="nav-approvals" onclick="showView('approvals')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Approvals
+          <span class="nav-badge">3</span>
+        </div>
+        <div class="nav-item" id="nav-artifacts" onclick="showView('artifacts')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          Artifacts
+        </div>
+        <div class="nav-item" id="nav-tools" onclick="showView('tools')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          Tools
+        </div>
+      </div>
+      <div class="nav-spacer"></div>
+      <div class="nav-section">
+        <div class="nav-item" id="nav-settings" onclick="showView('settings')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content" id="content-area">
+
+      <!-- VIEW: Run List -->
+      <div class="view active" id="view-runs">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Runs</div>
+            <div class="page-subtitle">12 total runs &middot; 1 active</div>
+          </div>
+          <button class="btn btn-primary" onclick="showView('wizard')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Run
+          </button>
+        </div>
+
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="run-row run-row-header">
+            <div>ID</div><div>Name</div><div>Campaign</div><div>Status</div><div>Duration</div><div>Cost</div><div>Progress</div>
+          </div>
+          <div class="run-row" onclick="showView('rundetail')">
+            <div class="run-id">#12</div>
+            <div><div class="run-name">Stability scan — Sector III, n=4</div></div>
+            <div class="run-campaign">Covariant Action Search</div>
+            <div><span class="badge badge-running"><span class="spinner"></span> Running</span></div>
+            <div class="run-duration">47m</div>
+            <div class="run-cost">$1.23</div>
+            <div><div class="progress-bar" style="width:90px"><div class="progress-fill blue" style="width:67%"></div></div><span style="font-size:10px;color:var(--text-muted);margin-left:4px">67%</span></div>
+          </div>
+          <div class="run-row">
+            <div class="run-id">#11</div>
+            <div><div class="run-name">Literature sweep — f(R) gravity 2020-2025</div></div>
+            <div class="run-campaign">Lit Review</div>
+            <div><span class="badge badge-completed">Completed</span></div>
+            <div class="run-duration">1h 12m</div>
+            <div class="run-cost">$0.87</div>
+            <div><div class="progress-bar" style="width:90px"><div class="progress-fill green" style="width:100%"></div></div></div>
+          </div>
+          <div class="run-row">
+            <div class="run-id">#10</div>
+            <div><div class="run-name">Perturbation analysis — de Sitter background</div></div>
+            <div class="run-campaign">Covariant Action Search</div>
+            <div><span class="badge badge-completed">Completed</span></div>
+            <div class="run-duration">2h 3m</div>
+            <div class="run-cost">$2.41</div>
+            <div><div class="progress-bar" style="width:90px"><div class="progress-fill green" style="width:100%"></div></div></div>
+          </div>
+          <div class="run-row">
+            <div class="run-id">#9</div>
+            <div><div class="run-name">Metric ansatz generation — dim=5</div></div>
+            <div class="run-campaign">Covariant Action Search</div>
+            <div><span class="badge badge-failed">Failed</span></div>
+            <div class="run-duration">34m</div>
+            <div class="run-cost">$0.56</div>
+            <div><div class="progress-bar" style="width:90px"><div class="progress-fill" style="width:43%;background:var(--red)"></div></div></div>
+          </div>
+          <div class="run-row">
+            <div class="run-id">#8</div>
+            <div><div class="run-name">EFT matching — scalar-tensor sector</div></div>
+            <div class="run-campaign">EFT Matching</div>
+            <div><span class="badge badge-completed">Completed</span></div>
+            <div class="run-duration">55m</div>
+            <div class="run-cost">$1.02</div>
+            <div><div class="progress-bar" style="width:90px"><div class="progress-fill green" style="width:100%"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: Run Detail -->
+      <div class="view" id="view-rundetail">
+        <div class="page-header" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <button class="btn btn-sm" onclick="showView('runs')" style="padding:4px 8px">&larr;</button>
+            <div>
+              <div class="page-title" style="display:flex;align-items:center;gap:8px">
+                Run #12 — Stability scan, Sector III
+                <span class="badge badge-running"><span class="spinner"></span> Running</span>
+              </div>
+              <div class="page-subtitle">Covariant Action Search &middot; Started 47 min ago &middot; ETA ~23 min</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm">&#10074;&#10074; Pause</button>
+            <button class="btn btn-sm btn-danger">&#9632; Stop</button>
+          </div>
+        </div>
+
+        <!-- Approval banner -->
+        <div class="approval-banner">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span class="approval-banner-text">1 approval pending — Shell execution requires your decision</span>
+          <button class="btn btn-sm" onclick="showView('approvals')" style="border-color:var(--orange);color:var(--orange)">Review</button>
+        </div>
+
+        <div class="run-detail-layout">
+          <!-- Left: Progress -->
+          <div class="panel">
+            <div class="panel-header">Progress</div>
+            <div class="panel-body">
+              <div style="margin-bottom:16px">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">CURRENT PHASE</div>
+                <div style="font-weight:600;font-size:14px">Verification</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Cross-checking tensor results with independent CAS backends</div>
+                <div style="margin-top:8px">
+                  <div class="progress-bar"><div class="progress-fill blue" style="width:67%"></div></div>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Step 14 of 21 &middot; 67%</div>
+                </div>
+              </div>
+
+              <div style="margin-bottom:16px">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">NEXT STEP</div>
+                <div style="font-size:12px;padding:8px;background:var(--bg-tertiary);border-radius:var(--radius-sm);border-left:2px solid var(--accent)">
+                  Evaluate perturbation stability at 4th order using Mathematica
+                </div>
+              </div>
+
+              <div style="margin-bottom:16px">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">ACTIVE</div>
+                <div style="font-size:12px;display:flex;align-items:center;gap:6px;padding:4px 0">
+                  <span class="spinner"></span>
+                  SymPy — simplify Ricci tensor (12.3s)
+                </div>
+                <div style="font-size:12px;display:flex;align-items:center;gap:6px;padding:4px 0">
+                  <span class="spinner"></span>
+                  Semantic Scholar — literature check (2.1s)
+                </div>
+              </div>
+
+              <div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">QUEUE</div>
+                <div style="font-size:12px;color:var(--text-secondary);padding:2px 0">Cadabra — verify tensor identity</div>
+                <div style="font-size:12px;color:var(--text-secondary);padding:2px 0">LaTeX — compile verification report</div>
+              </div>
+
+              <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+                <div class="cost-widget">
+                  <div class="cost-total-label">Run cost</div>
+                  <div class="cost-total">$1.23</div>
+                  <div class="cost-budget" style="margin-top:8px">
+                    <div class="cost-budget-text"><span>Budget used</span><span>24.6%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:24.6%;background:var(--green)"></div></div>
+                  </div>
+                  <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">
+                    Reasoning: $0.68 &middot; CAS: $0.31 &middot; Search: $0.18 &middot; Fast: $0.06
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center: Timeline -->
+          <div class="panel">
+            <div class="panel-header">
+              Timeline
+              <div style="display:flex;gap:4px">
+                <button class="btn btn-sm" style="font-size:10px;padding:2px 8px">Verbose</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="timeline-event">
+                <div class="timeline-icon approval">!</div>
+                <div class="timeline-content">
+                  <div class="timeline-title" style="color:var(--orange)">Approval required — Shell execution</div>
+                  <div class="timeline-desc">wolframscript -file /tmp/verify_metric.wl</div>
+                  <div class="timeline-meta">2:47 PM &middot; High risk &middot; Pending</div>
+                </div>
+              </div>
+              <div class="timeline-event">
+                <div class="timeline-icon tool">&#9881;</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">SymPy — simplify Ricci tensor</div>
+                  <div class="timeline-desc">Input: R_{\mu\nu} for modified metric ansatz &middot; Running...</div>
+                  <div class="timeline-meta">2:46 PM &middot; 12.3s elapsed <span class="spinner" style="margin-left:4px"></span></div>
+                </div>
+              </div>
+              <div class="timeline-event">
+                <div class="timeline-icon artifact">&#10003;</div>
+                <div class="timeline-content">
+                  <div class="timeline-title" style="color:var(--green)">Artifact produced — stability_sector3.csv</div>
+                  <div class="timeline-desc">47 candidate actions evaluated, 3 passed stability criteria</div>
+                  <div class="timeline-meta">2:44 PM &middot; via SymPy numerical scan</div>
+                </div>
+              </div>
+              <div class="timeline-event">
+                <div class="timeline-icon tool">&#9881;</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Cadabra — tensor field variation</div>
+                  <div class="timeline-desc">vary(S, g^{ab}) for candidate action #7 &middot; Result: non-trivial EOM</div>
+                  <div class="timeline-meta">2:41 PM &middot; 8.2s &middot; Success</div>
+                </div>
+              </div>
+              <div class="timeline-event">
+                <div class="timeline-icon info">i</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Phase transition: Computation &rarr; Verification</div>
+                  <div class="timeline-desc">12 candidate actions passed initial screening, moving to cross-CAS verification</div>
+                  <div class="timeline-meta">2:38 PM</div>
+                </div>
+              </div>
+              <div class="timeline-event">
+                <div class="timeline-icon tool">&#9881;</div>
+                <div class="timeline-content">
+                  <div class="timeline-title" style="color:var(--text-secondary)">SymPy — batch evaluation (47 simplifications)</div>
+                  <div class="timeline-desc">Scanned parameter space [0.1, 2.0] &times; [-1.0, 1.0] &middot; 3 non-trivial</div>
+                  <div class="timeline-meta">2:35 PM &middot; 34.1s &middot; Batched</div>
+                </div>
+              </div>
+              <div class="timeline-event">
+                <div class="timeline-icon tool">&#128218;</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Semantic Scholar — literature scan</div>
+                  <div class="timeline-desc">Query: "f(R) gravity stability sector III" &middot; 23 papers found, 4 highly relevant</div>
+                  <div class="timeline-meta">2:31 PM &middot; 2.4s &middot; Success</div>
+                </div>
+              </div>
+              <div class="timeline-event">
+                <div class="timeline-icon info">i</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Run started</div>
+                  <div class="timeline-desc">Campaign: Covariant Action Search &middot; Pack v2.1 &middot; Sector III, n=4</div>
+                  <div class="timeline-meta">2:00 PM</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Sidebar -->
+          <div class="panel">
+            <div class="tab-bar" style="flex-shrink:0">
+              <div class="tab active">Artifacts</div>
+              <div class="tab">Cost</div>
+              <div class="tab">Evidence</div>
+            </div>
+            <div class="panel-body">
+              <div style="margin-bottom:12px">
+                <button class="btn btn-sm btn-primary" style="width:100%">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Export Paper Pack
+                </button>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">3 artifacts produced</div>
+
+              <div class="artifact-card" style="margin-bottom:8px">
+                <div class="artifact-preview" style="height:80px;font-size:20px;background:linear-gradient(135deg, var(--bg-tertiary), var(--accent-bg))">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                </div>
+                <div class="artifact-info">
+                  <div class="artifact-name">stability_sector3.csv</div>
+                  <div class="artifact-meta">47 rows &middot; via SymPy &middot; 2:44 PM</div>
+                </div>
+              </div>
+
+              <div class="artifact-card" style="margin-bottom:8px">
+                <div class="artifact-preview" style="height:80px;font-size:20px;background:linear-gradient(135deg, var(--bg-tertiary), var(--green-bg))">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div class="artifact-info">
+                  <div class="artifact-name">perturbation_plot.png</div>
+                  <div class="artifact-meta">1200&times;800 &middot; via matplotlib &middot; 2:42 PM</div>
+                </div>
+              </div>
+
+              <div class="artifact-card" style="margin-bottom:8px">
+                <div class="artifact-preview" style="height:80px;font-size:20px;background:linear-gradient(135deg, var(--bg-tertiary), var(--blue-bg))">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <div class="artifact-info">
+                  <div class="artifact-name">references.bib</div>
+                  <div class="artifact-meta">23 entries &middot; via Semantic Scholar &middot; 2:31 PM</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: Approvals -->
+      <div class="view" id="view-approvals">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Approvals</div>
+            <div class="page-subtitle">3 pending &middot; 24 resolved today</div>
+          </div>
+          <button class="btn btn-sm" style="color:var(--green);border-color:var(--green)">Approve all low-risk (2)</button>
+        </div>
+
+        <div class="approval-card high">
+          <div class="approval-header">
+            <span class="risk-badge risk-high">HIGH RISK</span>
+            <span style="font-size:11px;color:var(--text-muted)">Run #12 &middot; Verification phase</span>
+          </div>
+          <div class="approval-what">Execute shell command</div>
+          <div class="approval-why">Orchestrator wants to verify the metric signature independently using Wolfram/xAct, which requires running a Mathematica script.</div>
+          <div class="approval-preview">$ wolframscript -file /tmp/verify_metric.wl
+
+# Script contents:
+<< xAct`xTensor`
+DefManifold[M, 4, {a, b, c, d}];
+DefMetric[1, g[-a, -b], CD, PrintAs -> "g"];
+# ... (23 more lines)
+# Verifies: RicciScalar[CD] == expected_value</div>
+          <div class="approval-actions">
+            <button class="btn btn-success btn-sm">Approve</button>
+            <button class="btn btn-danger btn-sm">Deny</button>
+            <button class="btn btn-sm">Approve always for this tool</button>
+            <span class="approval-timer">Expires in 4:32</span>
+          </div>
+        </div>
+
+        <div class="approval-card low">
+          <div class="approval-header">
+            <span class="risk-badge risk-low">LOW RISK</span>
+            <span style="font-size:11px;color:var(--text-muted)">Run #12 &middot; Verification phase</span>
+          </div>
+          <div class="approval-what">Network fetch — Semantic Scholar API</div>
+          <div class="approval-why">Literature agent wants to fetch full-text PDFs for 4 papers to check consistency with computed tensor results.</div>
+          <div class="approval-actions">
+            <button class="btn btn-success btn-sm">Approve</button>
+            <button class="btn btn-danger btn-sm">Deny</button>
+            <button class="btn btn-sm">Approve always for this tool</button>
+            <span class="approval-timer">Expires in 9:58</span>
+          </div>
+        </div>
+
+        <div class="approval-card low">
+          <div class="approval-header">
+            <span class="risk-badge risk-low">LOW RISK</span>
+            <span style="font-size:11px;color:var(--text-muted)">Run #12 &middot; Verification phase</span>
+          </div>
+          <div class="approval-what">Network fetch — NASA ADS API</div>
+          <div class="approval-why">Cross-referencing citation graph for related stability analyses in the literature.</div>
+          <div class="approval-actions">
+            <button class="btn btn-success btn-sm">Approve</button>
+            <button class="btn btn-danger btn-sm">Deny</button>
+            <button class="btn btn-sm">Approve always for this tool</button>
+            <span class="approval-timer">Expires in 9:58</span>
+          </div>
+        </div>
+
+        <div style="margin-top:24px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text-secondary)">Recent Decisions</div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="display:grid;grid-template-columns:80px 1fr 1fr 100px 100px;padding:10px 16px;font-size:11px;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border)">
+              <div>Run</div><div>Action</div><div>Tool</div><div>Decision</div><div>Time</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr 1fr 100px 100px;padding:10px 16px;font-size:12px;border-bottom:1px solid var(--border)">
+              <div class="run-id">#12</div><div>CAS evaluation</div><div>Cadabra</div><div style="color:var(--green)">Approved</div><div style="color:var(--text-muted)">2:40 PM</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr 1fr 100px 100px;padding:10px 16px;font-size:12px;border-bottom:1px solid var(--border)">
+              <div class="run-id">#12</div><div>File write</div><div>LaTeX</div><div style="color:var(--green)">Approved</div><div style="color:var(--text-muted)">2:38 PM</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr 1fr 100px 100px;padding:10px 16px;font-size:12px;">
+              <div class="run-id">#12</div><div>Network fetch</div><div>arXiv</div><div style="color:var(--green)">Auto (low-risk)</div><div style="color:var(--text-muted)">2:31 PM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: Artifacts -->
+      <div class="view" id="view-artifacts">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Artifacts</div>
+            <div class="page-subtitle">18 artifacts across 12 runs</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <select class="form-input form-select" style="width:160px;padding:6px 10px;font-size:12px">
+              <option>All runs</option>
+              <option selected>Run #12 — Stability scan</option>
+              <option>Run #11 — Lit sweep</option>
+              <option>Run #10 — Perturbation</option>
+            </select>
+            <select class="form-input form-select" style="width:120px;padding:6px 10px;font-size:12px">
+              <option selected>All types</option>
+              <option>Data (CSV)</option>
+              <option>Plots</option>
+              <option>LaTeX</option>
+              <option>BibTeX</option>
+              <option>PDF</option>
+            </select>
+          </div>
+        </div>
+        <div class="artifact-grid">
+          <div class="artifact-card">
+            <div class="artifact-preview" style="background:linear-gradient(135deg,#1a1d2e,#1e2845);display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+              <span style="font-size:10px;color:var(--text-muted);margin-top:6px">CSV</span>
+            </div>
+            <div class="artifact-info">
+              <div class="artifact-name">stability_sector3.csv</div>
+              <div class="artifact-meta">47 rows &middot; Run #12 &middot; 2:44 PM</div>
+            </div>
+          </div>
+          <div class="artifact-card">
+            <div class="artifact-preview" style="background:linear-gradient(135deg,#1a2e1e,#1e3828);display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span style="font-size:10px;color:var(--text-muted);margin-top:6px">PNG</span>
+            </div>
+            <div class="artifact-info">
+              <div class="artifact-name">perturbation_plot.png</div>
+              <div class="artifact-meta">1200&times;800 &middot; Run #12 &middot; 2:42 PM</div>
+            </div>
+          </div>
+          <div class="artifact-card">
+            <div class="artifact-preview" style="background:linear-gradient(135deg,#1a1d2e,#28201e);display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span style="font-size:10px;color:var(--text-muted);margin-top:6px">BIB</span>
+            </div>
+            <div class="artifact-info">
+              <div class="artifact-name">references.bib</div>
+              <div class="artifact-meta">23 entries &middot; Run #12 &middot; 2:31 PM</div>
+            </div>
+          </div>
+          <div class="artifact-card">
+            <div class="artifact-preview" style="background:linear-gradient(135deg,#2e1a1e,#381e28);display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span style="font-size:10px;color:var(--text-muted);margin-top:6px">PDF</span>
+            </div>
+            <div class="artifact-info">
+              <div class="artifact-name">verification_report.pdf</div>
+              <div class="artifact-meta">8 pages &middot; Run #10 &middot; Yesterday</div>
+            </div>
+          </div>
+          <div class="artifact-card">
+            <div class="artifact-preview" style="background:linear-gradient(135deg,#1a2e2e,#1e3838);display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span style="font-size:10px;color:var(--text-muted);margin-top:6px">TEX</span>
+            </div>
+            <div class="artifact-info">
+              <div class="artifact-name">sector3_derivation.tex</div>
+              <div class="artifact-meta">LaTeX source &middot; Run #10 &middot; Yesterday</div>
+            </div>
+          </div>
+          <div class="artifact-card">
+            <div class="artifact-preview" style="background:linear-gradient(135deg,#1a1d2e,#1e2845);display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span style="font-size:10px;color:var(--text-muted);margin-top:6px">PNG</span>
+            </div>
+            <div class="artifact-info">
+              <div class="artifact-name">parameter_space_heatmap.png</div>
+              <div class="artifact-meta">2400&times;1600 &middot; Run #10 &middot; Yesterday</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: Tools -->
+      <div class="view" id="view-tools">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Tools</div>
+            <div class="page-subtitle">6 MCP servers + 3 CAS backends connected</div>
+          </div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:8px 16px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)">CAS Backends</div>
+          <div class="tool-row">
+            <div class="tool-status healthy"></div>
+            <div class="tool-info"><div class="tool-name">SymPy</div><div class="tool-type">Python CAS &middot; Always available</div></div>
+            <div class="tool-stats">Avg: 340ms<br>47 calls today</div>
+            <button class="btn btn-sm">Test</button>
+          </div>
+          <div class="tool-row">
+            <div class="tool-status healthy"></div>
+            <div class="tool-info"><div class="tool-name">Wolfram / xAct</div><div class="tool-type">Mathematica CAS &middot; MCP subprocess</div></div>
+            <div class="tool-stats">Avg: 2.1s<br>12 calls today</div>
+            <button class="btn btn-sm">Test</button>
+          </div>
+          <div class="tool-row">
+            <div class="tool-status healthy"></div>
+            <div class="tool-info"><div class="tool-name">Cadabra2</div><div class="tool-type">Tensor CAS &middot; MCP subprocess</div></div>
+            <div class="tool-stats">Avg: 1.8s<br>8 calls today</div>
+            <button class="btn btn-sm">Test</button>
+          </div>
+          <div style="padding:8px 16px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);border-top:1px solid var(--border)">MCP Servers</div>
+          <div class="tool-row">
+            <div class="tool-status healthy"></div>
+            <div class="tool-info"><div class="tool-name">Semantic Scholar</div><div class="tool-type">Literature search &middot; REST API</div></div>
+            <div class="tool-stats">Avg: 890ms<br>23 calls today</div>
+            <button class="btn btn-sm">Test</button>
+          </div>
+          <div class="tool-row">
+            <div class="tool-status healthy"></div>
+            <div class="tool-info"><div class="tool-name">NASA ADS</div><div class="tool-type">Literature search &middot; REST API</div></div>
+            <div class="tool-stats">Avg: 1.2s<br>15 calls today</div>
+            <button class="btn btn-sm">Test</button>
+          </div>
+          <div class="tool-row">
+            <div class="tool-status degraded"></div>
+            <div class="tool-info"><div class="tool-name">arXiv</div><div class="tool-type">Paper retrieval &middot; MCP (npx)</div></div>
+            <div class="tool-stats" style="color:var(--yellow)">Avg: 4.2s<br>Rate limited</div>
+            <button class="btn btn-sm">Test</button>
+          </div>
+          <div class="tool-row">
+            <div class="tool-status healthy"></div>
+            <div class="tool-info"><div class="tool-name">Zotero</div><div class="tool-type">Reference management &middot; REST API</div></div>
+            <div class="tool-stats">Avg: 450ms<br>6 calls today</div>
+            <button class="btn btn-sm">Test</button>
+          </div>
+          <div class="tool-row">
+            <div class="tool-status healthy"></div>
+            <div class="tool-info"><div class="tool-name">LaTeX Compiler</div><div class="tool-type">Document generation &middot; Local subprocess</div></div>
+            <div class="tool-stats">Avg: 3.4s<br>4 calls today</div>
+            <button class="btn btn-sm">Test</button>
+          </div>
+          <div class="tool-row">
+            <div class="tool-status down"></div>
+            <div class="tool-info"><div class="tool-name">INSPIRE HEP</div><div class="tool-type">Literature search &middot; REST API</div></div>
+            <div class="tool-stats" style="color:var(--red)">Unreachable<br>API key missing</div>
+            <button class="btn btn-sm">Test</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: New Run Wizard -->
+      <div class="view" id="view-wizard">
+        <div class="page-header" style="margin-bottom:4px">
+          <div class="page-title">New Run</div>
+          <button class="btn btn-sm" onclick="showView('runs')">Cancel</button>
+        </div>
+
+        <div class="wizard-steps">
+          <div class="wizard-step done"><span class="wizard-step-num">1</span>Campaign</div>
+          <div class="wizard-step done"><span class="wizard-step-num">2</span>Parameters</div>
+          <div class="wizard-step active"><span class="wizard-step-num">3</span>Review</div>
+          <div class="wizard-step"><span class="wizard-step-num">4</span>Start</div>
+        </div>
+
+        <div class="wizard-content">
+          <div style="margin-bottom:20px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:4px">Review &amp; Preflight</div>
+            <div style="font-size:12px;color:var(--text-secondary)">Confirm your run configuration before starting.</div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px">
+            <div class="preflight-section">
+              <div class="preflight-section-title">Campaign</div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="pack-icon" style="width:28px;height:28px;font-size:14px">&#x2B22;</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px">Covariant Action Search</div>
+                  <div style="font-size:11px;color:var(--text-secondary)">v2.1 &middot; Modified gravity action space exploration</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px">
+            <div class="preflight-section">
+              <div class="preflight-section-title">Parameters</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div class="preflight-item"><span style="color:var(--text-muted)">Sector:</span> <span>III (scalar-tensor)</span></div>
+                <div class="preflight-item"><span style="color:var(--text-muted)">Max order:</span> <span>n=4</span></div>
+                <div class="preflight-item"><span style="color:var(--text-muted)">Background:</span> <span>de Sitter</span></div>
+                <div class="preflight-item"><span style="color:var(--text-muted)">Stability check:</span> <span>Enabled</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px">
+            <div class="preflight-section">
+              <div class="preflight-section-title">Tools &amp; Permissions</div>
+              <div class="preflight-item"><span class="preflight-icon" style="color:var(--green)">&#10003;</span> SymPy — algebraic computation</div>
+              <div class="preflight-item"><span class="preflight-icon" style="color:var(--green)">&#10003;</span> Cadabra2 — tensor algebra</div>
+              <div class="preflight-item"><span class="preflight-icon" style="color:var(--yellow)">&#9888;</span> Wolfram/xAct — shell execution (requires approval)</div>
+              <div class="preflight-item"><span class="preflight-icon" style="color:var(--green)">&#10003;</span> Semantic Scholar — network access</div>
+              <div class="preflight-item"><span class="preflight-icon" style="color:var(--green)">&#10003;</span> NASA ADS — network access</div>
+              <div class="preflight-item"><span class="preflight-icon" style="color:var(--yellow)">&#9888;</span> LaTeX compiler — file write (requires approval)</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px">
+            <div class="preflight-section">
+              <div class="preflight-section-title">Model Routing</div>
+              <div class="preflight-item"><span style="color:var(--text-muted)">Reasoning:</span> <span>Claude Opus 4.5</span></div>
+              <div class="preflight-item"><span style="color:var(--text-muted)">Generation:</span> <span>Claude Sonnet 4.5</span></div>
+              <div class="preflight-item"><span style="color:var(--text-muted)">Fast:</span> <span>Claude Haiku 4.5</span></div>
+              <div class="preflight-item"><span style="color:var(--text-muted)">Embeddings:</span> <span>text-embedding-3-large</span></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:20px">
+            <div class="preflight-section-title">Estimates</div>
+            <div class="estimate-card">
+              <div class="estimate-box">
+                <div class="estimate-value">$2–5</div>
+                <div class="estimate-label">Estimated cost</div>
+              </div>
+              <div class="estimate-box">
+                <div class="estimate-value">45–90m</div>
+                <div class="estimate-label">Estimated duration</div>
+              </div>
+              <div class="estimate-box">
+                <div class="estimate-value">~120</div>
+                <div class="estimate-label">Tool calls expected</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px">
+            <button class="btn">Back</button>
+            <button class="btn btn-primary" onclick="showView('rundetail')" style="padding:8px 24px;font-size:13px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Start Run
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: Settings (minimal) -->
+      <div class="view" id="view-settings">
+        <div class="page-header">
+          <div class="page-title">Settings</div>
+        </div>
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:24px;max-width:800px">
+          <div>
+            <div style="font-size:12px;padding:8px 0;color:var(--accent-light);font-weight:500;border-bottom:1px solid var(--border)">General</div>
+            <div style="font-size:12px;padding:8px 0;color:var(--text-secondary);cursor:pointer">Approvals</div>
+            <div style="font-size:12px;padding:8px 0;color:var(--text-secondary);cursor:pointer">Notifications</div>
+            <div style="font-size:12px;padding:8px 0;color:var(--text-secondary);cursor:pointer">Security</div>
+            <div style="font-size:12px;padding:8px 0;color:var(--text-secondary);cursor:pointer">Remote Access</div>
+          </div>
+          <div>
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:12px">General</div>
+              <div class="form-group">
+                <div class="form-label">Theme</div>
+                <select class="form-input form-select" style="width:200px">
+                  <option selected>Dark</option><option>Light</option><option>System</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <div class="form-label">Default workspace</div>
+                <input class="form-input" value="~/research/openeinstein-workspace" style="width:100%">
+              </div>
+              <div class="form-group">
+                <div class="form-label">Gateway port</div>
+                <input class="form-input" value="8420" style="width:120px">
+              </div>
+            </div>
+            <div class="card">
+              <div style="font-weight:600;font-size:14px;margin-bottom:4px">About</div>
+              <div style="font-size:12px;color:var(--text-secondary)">
+                OpenEinstein v0.1.0<br>
+                Gateway: v0.1.0<br>
+                Control UI: v0.1.0<br>
+                Python: 3.12.8
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="statusbar">
+    <span class="spinner" style="margin-right:6px"></span>
+    Run #12 — Verification &middot; 67% &middot; ETA ~23 min &middot; $1.23 &middot; 2 tools active, 1 approval pending
+  </div>
+</div>
+
+<script>
+function showView(viewName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const viewMap = {
+    'runs': 'view-runs',
+    'rundetail': 'view-rundetail',
+    'approvals': 'view-approvals',
+    'artifacts': 'view-artifacts',
+    'tools': 'view-tools',
+    'wizard': 'view-wizard',
+    'settings': 'view-settings'
+  };
+
+  const navMap = {
+    'runs': 'nav-runs',
+    'rundetail': 'nav-runs',
+    'approvals': 'nav-approvals',
+    'artifacts': 'nav-artifacts',
+    'tools': 'nav-tools',
+    'wizard': 'nav-runs',
+    'settings': 'nav-settings'
+  };
+
+  const viewEl = document.getElementById(viewMap[viewName]);
+  if (viewEl) viewEl.classList.add('active');
+
+  const navEl = document.getElementById(navMap[viewName]);
+  if (navEl) navEl.classList.add('active');
+}
+</script>
+
+</body>
+</html>

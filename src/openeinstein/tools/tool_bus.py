@@ -112,6 +112,9 @@ class ToolBus:
             self._manager.start_server(server_name)
         return server.list_tools()
 
+    def list_servers(self) -> list[str]:
+        return self._manager.list_server_names()
+
     def call(
         self,
         server: str,

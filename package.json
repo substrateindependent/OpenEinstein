@@ -1,0 +1,11 @@
+{
+  "name": "openeinstein-monorepo-tools",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "test": "pnpm --dir ui test",
+    "typecheck": "pnpm --dir ui typecheck",
+    "build": "pnpm --dir ui build",
+    "e2e": "pnpm --dir ui e2e"
+  }
+}

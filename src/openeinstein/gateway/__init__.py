@@ -22,12 +22,16 @@ from openeinstein.gateway.hooks import (
     register_hooks_from_yaml,
 )
 from openeinstein.gateway.policy import PolicyConfig, PolicyLoadError, load_policy
+from openeinstein.gateway.web import DashboardConfig, DashboardDeps, create_dashboard_app
 
 __all__ = [
     "ApprovalGateHook",
     "ArtifactRecord",
     "AuditLoggerHook",
     "ControlPlane",
+    "create_dashboard_app",
+    "DashboardConfig",
+    "DashboardDeps",
     "FileBackedControlPlane",
     "Hook",
     "HookContext",

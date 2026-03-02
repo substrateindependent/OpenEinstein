@@ -23,6 +23,8 @@ classifiers = [
 ]
 dependencies = [
   "pydantic>=2.0",
+  "fastapi>=0.115",
+  "uvicorn>=0.31",
   "pydantic-ai>=0.1",
   "litellm>=1.0",
   "mcp>=1.0",
