@@ -261,3 +261,51 @@ export async function updateRunTags(
   })
   return parseJson<{ run_id: string; tags: string[] }>(response)
 }
+
+export async function checkRemoteSafety(
+  token: string,
+  origin: string,
+  baseUrl = '',
+): Promise<{ allowed: boolean; message: string }> {
+  const response = await fetch(`${baseUrl}/api/v1/system/remote/check`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ origin }),
+  })
+  return parseJson<{ allowed: boolean; message: string }>(response)
+}
+
+export async function testWebhook(
+  token: string,
+  url: string,
+  baseUrl = '',
+): Promise<{ ok: boolean; message: string }> {
+  const response = await fetch(`${baseUrl}/api/v1/system/webhook/test`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ url }),
+  })
+  return parseJson<{ ok: boolean; message: string }>(response)
+}
+
+export async function testEmail(
+  token: string,
+  email: string,
+  baseUrl = '',
+): Promise<{ ok: boolean; message: string }> {
+  const response = await fetch(`${baseUrl}/api/v1/system/email/test`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  })
+  return parseJson<{ ok: boolean; message: string }>(response)
+}

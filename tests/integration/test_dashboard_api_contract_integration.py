@@ -92,6 +92,18 @@ def test_run_endpoints_require_auth_and_support_lifecycle(tmp_path: Path) -> Non
     assert listed_artifacts.status_code == 200
     assert len(listed_artifacts.json()["artifacts"]) >= 1
 
+    remote = client.post("/api/v1/system/remote/check", json={"origin": "http://10.0.0.5:8420"})
+    assert remote.status_code == 200
+    assert remote.json()["allowed"] is False
+
+    webhook = client.post("/api/v1/system/webhook/test", json={"url": "https://hooks.example.com/oe"})
+    assert webhook.status_code == 200
+    assert webhook.json()["ok"] is True
+
+    email = client.post("/api/v1/system/email/test", json={"email": "team@example.com"})
+    assert email.status_code == 200
+    assert email.json()["ok"] is True
+
 
 def test_approval_endpoints_are_wired_and_mutate_store(tmp_path: Path) -> None:
     client = _client(tmp_path)

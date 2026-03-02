@@ -5,13 +5,26 @@ import type { ConfigValidationResponse, DashboardSettings } from '../../types/ap
 type SettingsPanelProps = {
   initialSettings: DashboardSettings
   onSave: (settings: DashboardSettings) => Promise<ConfigValidationResponse>
+  onCheckRemote?: (origin: string) => Promise<{ allowed: boolean; message: string }>
+  onTestWebhook?: (url: string) => Promise<{ ok: boolean; message: string }>
+  onTestEmail?: (email: string) => Promise<{ ok: boolean; message: string }>
 }
 
-export function SettingsPanel({ initialSettings, onSave }: SettingsPanelProps) {
+export function SettingsPanel({
+  initialSettings,
+  onSave,
+  onCheckRemote,
+  onTestWebhook,
+  onTestEmail,
+}: SettingsPanelProps) {
   const [sessionTimeout, setSessionTimeout] = useState(String(initialSettings.session_timeout_minutes))
   const [notificationsEnabled, setNotificationsEnabled] = useState(initialSettings.notifications_enabled)
   const [allowInsecureRemote, setAllowInsecureRemote] = useState(initialSettings.allow_insecure_remote)
   const [message, setMessage] = useState('')
+  const [remoteOrigin, setRemoteOrigin] = useState('')
+  const [webhookUrl, setWebhookUrl] = useState('')
+  const [emailTarget, setEmailTarget] = useState('')
+  const [integrationMessage, setIntegrationMessage] = useState('')
 
   async function handleSave() {
     const timeout = Number(sessionTimeout)
@@ -70,6 +83,76 @@ export function SettingsPanel({ initialSettings, onSave }: SettingsPanelProps) {
         Save settings
       </button>
       {message && <p>{message}</p>}
+
+      <hr />
+      <h3>Remote Safety</h3>
+      <label>
+        Remote origin
+        <input
+          aria-label="Remote origin"
+          type="text"
+          value={remoteOrigin}
+          onChange={(event) => setRemoteOrigin(event.target.value)}
+        />
+      </label>
+      <button
+        type="button"
+        onClick={async () => {
+          if (!onCheckRemote) {
+            return
+          }
+          const result = await onCheckRemote(remoteOrigin)
+          setIntegrationMessage(result.message)
+        }}
+      >
+        Check remote safety
+      </button>
+
+      <h3>Notifications</h3>
+      <label>
+        Webhook URL
+        <input
+          aria-label="Webhook URL"
+          type="text"
+          value={webhookUrl}
+          onChange={(event) => setWebhookUrl(event.target.value)}
+        />
+      </label>
+      <button
+        type="button"
+        onClick={async () => {
+          if (!onTestWebhook) {
+            return
+          }
+          const result = await onTestWebhook(webhookUrl)
+          setIntegrationMessage(result.message)
+        }}
+      >
+        Test webhook
+      </button>
+
+      <label>
+        Email target
+        <input
+          aria-label="Email target"
+          type="text"
+          value={emailTarget}
+          onChange={(event) => setEmailTarget(event.target.value)}
+        />
+      </label>
+      <button
+        type="button"
+        onClick={async () => {
+          if (!onTestEmail) {
+            return
+          }
+          const result = await onTestEmail(emailTarget)
+          setIntegrationMessage(result.message)
+        }}
+      >
+        Test email
+      </button>
+      {integrationMessage && <p>{integrationMessage}</p>}
     </section>
   )
 }

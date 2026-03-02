@@ -13,6 +13,7 @@ import { SettingsPanel } from './components/settings/SettingsPanel'
 import { ToolsPanel } from './components/tools/ToolsPanel'
 import {
   bulkDecideApprovals,
+  checkRemoteSafety,
   compareRuns,
   decideApproval,
   exportRun,
@@ -30,6 +31,8 @@ import {
   startRun,
   stopRun,
   testToolConnection,
+  testEmail,
+  testWebhook,
   updateRunTags,
   validateDashboardConfig,
 } from './lib/apiClient'
@@ -285,11 +288,35 @@ function SettingsPage() {
     return validateDashboardConfig(token, nextSettings)
   }
 
+  async function onCheckRemote(origin: string) {
+    if (!token) {
+      return { allowed: false, message: 'Missing session token' }
+    }
+    return checkRemoteSafety(token, origin)
+  }
+
+  async function onWebhookTest(url: string) {
+    if (!token) {
+      return { ok: false, message: 'Missing session token' }
+    }
+    return testWebhook(token, url)
+  }
+
+  async function onEmailTest(email: string) {
+    if (!token) {
+      return { ok: false, message: 'Missing session token' }
+    }
+    return testEmail(token, email)
+  }
+
   return (
     <SettingsPanel
       key={`${settings.session_timeout_minutes}-${settings.notifications_enabled}-${settings.allow_insecure_remote}`}
       initialSettings={settings}
       onSave={onSave}
+      onCheckRemote={onCheckRemote}
+      onTestWebhook={onWebhookTest}
+      onTestEmail={onEmailTest}
     />
   )
 }
