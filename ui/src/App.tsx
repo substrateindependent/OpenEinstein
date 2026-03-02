@@ -2,7 +2,18 @@ import './App.css'
 import { useEffect } from 'react'
 import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom'
 
-import { completePairing, listRuns, startPairing, startRun } from './lib/apiClient'
+import { GatewayStatus } from './components/layout/GatewayStatus'
+import { RunWizard } from './components/runs/RunWizard'
+import {
+  completePairing,
+  listRuns,
+  pauseRun,
+  resumeRun,
+  startPairing,
+  startRun,
+  stopRun,
+} from './lib/apiClient'
+import { RunWorkspace } from './components/runs/RunWorkspace'
 import { useRunsStore } from './stores/runs'
 import { useSessionStore } from './stores/session'
 import { useWSStore } from './stores/ws'
@@ -10,8 +21,14 @@ import { useWSStore } from './stores/ws'
 function RunsPage() {
   const runs = useRunsStore((state) => state.runs)
   const loading = useRunsStore((state) => state.loading)
+  const selectedRunId = useRunsStore((state) => state.selectedRunId)
+  const selectRun = useRunsStore((state) => state.selectRun)
+  const timelineByRun = useRunsStore((state) => state.timelineByRun)
+  const applyEvent = useRunsStore((state) => state.applyEvent)
   const token = useSessionStore((state) => state.token)
   const setRuns = useRunsStore((state) => state.setRuns)
+  const errors = useWSStore((state) => state.errors)
+  const clearErrors = useWSStore((state) => state.clearErrors)
 
   async function onStartRun() {
     if (!token) {
@@ -26,23 +43,72 @@ function RunsPage() {
         started_at: new Date().toISOString(),
       },
     ])
+    applyEvent({
+      type: 'run_event',
+      payload: {
+        run_id: started.run_id,
+        summary: `Run started from ${'campaigns/sample.yaml'}`,
+      },
+    })
   }
 
+  async function onPauseRun(runId: string) {
+    if (!token) {
+      return
+    }
+    const paused = await pauseRun(token, runId)
+    applyEvent({ type: 'run_state', payload: { run_id: runId, status: paused.status } })
+  }
+
+  async function onResumeRun(runId: string) {
+    if (!token) {
+      return
+    }
+    const resumed = await resumeRun(token, runId)
+    applyEvent({ type: 'run_state', payload: { run_id: runId, status: resumed.status } })
+  }
+
+  async function onStopRun(runId: string) {
+    if (!token) {
+      return
+    }
+    const stopped = await stopRun(token, runId)
+    applyEvent({ type: 'run_state', payload: { run_id: runId, status: stopped.status } })
+  }
+
+  const timelineEvents = selectedRunId ? timelineByRun[selectedRunId] ?? [] : []
+
   return (
-    <section>
-      <h2>Runs</h2>
-      <p>Live campaign runs streamed from the gateway.</p>
-      <button type="button" onClick={() => void onStartRun()} disabled={!token}>
-        Start Run
-      </button>
-      {loading && <p>Loading runs...</p>}
-      <ul>
-        {runs.map((run) => (
-          <li key={run.run_id}>
-            {run.run_id} - {run.status}
-          </li>
-        ))}
-      </ul>
+    <section className="runs-screen">
+      {errors.length > 0 && (
+        <div className="error-stack" role="status" aria-label="Gateway errors">
+          <div className="error-stack-header">
+            <h2>Errors</h2>
+            <button type="button" onClick={() => clearErrors()}>
+              Clear
+            </button>
+          </div>
+          <ul>
+            {errors.map((error, index) => (
+              <li key={`${error.ts}-${index}`} className={`error-card error-${error.classification}`}>
+                <strong>{error.classification.toUpperCase()}</strong> {error.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <RunWorkspace
+        runs={runs}
+        loading={loading}
+        selectedRunId={selectedRunId}
+        timelineEvents={timelineEvents}
+        onPauseRun={onPauseRun}
+        onResumeRun={onResumeRun}
+        onStopRun={onStopRun}
+        onSelectRun={selectRun}
+        onStartRun={onStartRun}
+      />
+      <RunWizard onStart={onStartRun} />
     </section>
   )
 }
@@ -109,10 +175,7 @@ function Shell() {
 
   return (
     <div className="app-shell">
-      <header className="top-bar">
-        <h1>OpenEinstein Control UI</h1>
-        <p>Gateway: {gatewayStatus}</p>
-      </header>
+      <GatewayStatus status={gatewayStatus} />
       <div className="body">
         <nav className="nav">
           <button type="button" onClick={() => navigate('/')}>

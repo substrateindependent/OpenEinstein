@@ -49,3 +49,31 @@ export async function startRun(
   })
   return parseJson<StartRunResponse>(response)
 }
+
+export async function pauseRun(token: string, runId: string, baseUrl = ''): Promise<StartRunResponse> {
+  const response = await fetch(`${baseUrl}/api/v1/runs/${runId}/pause`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return parseJson<StartRunResponse>(response)
+}
+
+export async function resumeRun(
+  token: string,
+  runId: string,
+  baseUrl = '',
+): Promise<StartRunResponse> {
+  const response = await fetch(`${baseUrl}/api/v1/runs/${runId}/resume`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return parseJson<StartRunResponse>(response)
+}
+
+export async function stopRun(token: string, runId: string, baseUrl = ''): Promise<StartRunResponse> {
+  const response = await fetch(`${baseUrl}/api/v1/runs/${runId}/stop`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return parseJson<StartRunResponse>(response)
+}

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import App from './App'
@@ -6,9 +6,9 @@ import App from './App'
 describe('App routing and shell', () => {
   it('renders shell chrome and navigates to settings', async () => {
     render(<App />)
-    expect(screen.getByRole('heading', { name: /OpenEinstein Control UI/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /OpenEinstein Control UI/i })).toBeInTheDocument()
     expect(screen.getByText(/Gateway:/i)).toBeInTheDocument()
-    expect(screen.getByText(/No active runs/i)).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText(/No active runs/i)).toBeInTheDocument())
 
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: /Settings/i }))
