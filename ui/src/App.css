@@ -44,6 +44,15 @@
   cursor: pointer;
 }
 
+.nav.nav-compact button {
+  padding: 0.4rem 0.55rem;
+  font-size: 0.85rem;
+}
+
+.mobile-nav-toggle {
+  display: none;
+}
+
 .content {
   padding: 1.5rem;
 }
@@ -120,6 +129,20 @@
 .command-list button {
   width: 100%;
   text-align: left;
+}
+
+.nl-command-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.nl-command-form input {
+  max-width: 28rem;
+  padding: 0.5rem;
+  border: 1px solid #405061;
+  border-radius: 0.5rem;
+  background: #0a0f17;
+  color: inherit;
 }
 
 .runs-screen {
@@ -341,6 +364,47 @@
   width: 100%;
 }
 
+.campaign-builder,
+.pack-marketplace,
+.layout-customizer {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 52rem;
+}
+
+.campaign-builder select,
+.campaign-builder input {
+  margin-top: 0.3rem;
+  max-width: 24rem;
+}
+
+.builder-schema {
+  border: 1px solid #3e5065;
+  border-radius: 0.75rem;
+  background: #0f1622;
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.marketplace-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.marketplace-card {
+  border: 1px solid #3f5167;
+  border-radius: 0.75rem;
+  background: #0f1622;
+  padding: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -395,6 +459,14 @@
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(12rem, 0.9fr) minmax(20rem, 2fr) minmax(14rem, 1fr);
+}
+
+.run-panels.layout-focus_timeline {
+  grid-template-columns: minmax(11rem, 0.8fr) minmax(26rem, 2.8fr) minmax(11rem, 0.8fr);
+}
+
+.run-panels.layout-focus_details {
+  grid-template-columns: minmax(12rem, 1fr) minmax(16rem, 1.4fr) minmax(20rem, 2.4fr);
 }
 
 .run-panel {
@@ -452,11 +524,22 @@
     grid-template-columns: 1fr;
   }
 
+  .mobile-nav-toggle {
+    display: inline-flex;
+    margin: 0.5rem 1rem 0;
+    width: fit-content;
+  }
+
   .nav {
-    grid-auto-flow: column;
+    display: none;
+    grid-auto-flow: row;
     border-right: none;
     border-bottom: 1px solid #2f2f2f;
-    overflow-x: auto;
+    overflow-x: visible;
+  }
+
+  .nav.nav-open {
+    display: grid;
   }
 
   .run-panels {

@@ -1484,3 +1484,162 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
     - `ui/src/App.compare.test.tsx` verifies route mount, compare API call, and tag update API mutation.
     - `ui/src/components/compare/ComparePanel.test.tsx` verifies confidence rendering and tag update callback dispatch.
     - `tests/integration/test_dashboard_api_contract_integration.py` verifies compare and tags endpoint wiring under auth.
+
+## UI-020: Safe remote checks and webhook/email settings wiring
+
+- Files Created:
+  - `ui/src/App.remote-settings.test.tsx`
+- Files Modified:
+  - `src/openeinstein/gateway/api/system.py`
+  - `tests/integration/test_dashboard_api_contract_integration.py`
+  - `ui/src/App.tsx`
+  - `ui/src/components/settings/SettingsPanel.tsx`
+  - `ui/src/lib/apiClient.ts`
+- Interfaces Exposed:
+  - `POST /api/v1/system/remote/check`
+  - `POST /api/v1/system/webhook/test`
+  - `POST /api/v1/system/email/test`
+  - Settings UI actions for remote safety and notification channel tests.
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: UI-016 settings surface.
+- Depended On By: UI-023 NL/power workflow and integration verification.
+- Verification Commands:
+  - `pnpm --dir ui test`
+  - `pnpm --dir ui run typecheck`
+  - `.venv/bin/pytest tests/integration/test_dashboard_api_contract_integration.py --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path: Settings page buttons call API client methods which call system endpoints.
+  - Integration tests: `ui/src/App.remote-settings.test.tsx` and `tests/integration/test_dashboard_api_contract_integration.py` assert endpoint reachability and UI action wiring.
+
+## UI-021 / UI-022 / UI-023: Builder, marketplace, NL intent, and layout/mobile wiring
+
+- Files Created:
+  - Backend:
+    - `src/openeinstein/gateway/api/intent.py`
+    - `campaign-packs/_marketplace/scalar-tensor-lab/campaign.yaml`
+    - `campaign-packs/_marketplace/scalar-tensor-lab/docs/README.md`
+  - Frontend:
+    - `ui/src/components/builder/CampaignBuilder.tsx`
+    - `ui/src/components/marketplace/PackMarketplace.tsx`
+    - `ui/src/components/layout/LayoutCustomizer.tsx`
+    - `ui/src/stores/layout.ts`
+    - `ui/src/stores/layout.test.ts`
+    - `ui/src/App.builder-marketplace.test.tsx`
+    - `ui/src/App.nl-layout-mobile.test.tsx`
+- Files Modified:
+  - Backend:
+    - `src/openeinstein/gateway/api/config.py`
+    - `src/openeinstein/gateway/api/__init__.py`
+    - `src/openeinstein/gateway/web/app.py`
+    - `src/openeinstein/gateway/web/config.py`
+    - `tests/integration/test_dashboard_api_contract_integration.py`
+  - Frontend:
+    - `ui/src/App.tsx`
+    - `ui/src/App.css`
+    - `ui/src/App.routes.test.tsx`
+    - `ui/src/components/commands/CommandPalette.tsx`
+    - `ui/src/components/runs/RunWorkspace.tsx`
+    - `ui/src/lib/apiClient.ts`
+    - `ui/src/types/api.ts`
+- Interfaces Exposed:
+  - Pack/builder APIs:
+    - `GET /api/v1/packs`
+    - `GET /api/v1/packs/{pack_id}/schema`
+    - `GET /api/v1/packs/marketplace`
+    - `POST /api/v1/packs/install`
+  - NL intent API:
+    - `POST /api/v1/intent/command`
+  - Frontend routes:
+    - `/builder`
+    - `/marketplace`
+    - `/layout`
+  - Layout store:
+    - `useLayoutStore` with persisted panel layout and compact-nav preferences.
+- Database Changes: none.
+- Config Changes:
+  - `OPENEINSTEIN_PACKS_ROOT` and `OPENEINSTEIN_MARKETPLACE_ROOT` environment variables supported for API pack roots.
+- Depends On: UI-019 and UI-020.
+- Depended On By: UI-024 packaging/CI and IC-19/20/22 verification.
+- Verification Commands:
+  - `pnpm --dir ui test`
+  - `pnpm --dir ui run typecheck`
+  - `.venv/bin/pytest tests/integration/test_dashboard_api_contract_integration.py --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path:
+    - Builder route fetches pack schema and starts runs via `/api/v1/runs`.
+    - Marketplace route installs curated packs via `/api/v1/packs/install` and refreshes inventory.
+    - NL command mode in command palette calls `/api/v1/intent/command`, then applies route/run side effects.
+    - Run workspace consumes persisted layout state (`layout-focus_timeline` / `layout-focus_details`).
+  - Integration tests:
+    - `ui/src/App.builder-marketplace.test.tsx` verifies install flow and builder-started run wiring.
+    - `ui/src/App.nl-layout-mobile.test.tsx` verifies NL intent dispatch and mobile nav/layout persistence.
+    - `tests/integration/test_dashboard_api_contract_integration.py` verifies packs/schema/install/intent backend wiring.
+
+## UI-024: Packaging, CI, and no-orphan hardening
+
+- Files Created:
+  - `MANIFEST.in`
+  - `scripts/sync-control-ui-assets.py`
+  - `src/openeinstein/gateway/web/static/control-ui/index.html`
+  - `src/openeinstein/gateway/web/static/control-ui/vite.svg`
+  - `src/openeinstein/gateway/web/static/control-ui/assets/index-BdNnVvpc.css`
+  - `src/openeinstein/gateway/web/static/control-ui/assets/index-CVxB3xNI.js`
+- Files Modified:
+  - `.github/workflows/ci.yml`
+  - `package.json`
+  - `pyproject.toml`
+  - `tests/integration/test_packaging_install.py`
+  - `tests/integration/test_dashboard_app_integration.py`
+  - `src/openeinstein/gateway/web/config.py`
+- Interfaces Exposed:
+  - Build scripts:
+    - `pnpm build` now runs UI build + package asset sync.
+    - `pnpm run sync-ui-assets` explicit sync hook.
+  - CI contract:
+    - Node setup + frontend test/typecheck/build steps in CI job.
+  - Packaging contract:
+    - wheel/sdist include `openeinstein/gateway/web/static/control-ui/*` assets.
+- Database Changes: none.
+- Config Changes:
+  - `DashboardConfig.static_dir` defaults to packaged static assets when present.
+- Depends On: UI-003 static serving and UI-021+ route wiring.
+- Depended On By: final acceptance and deployment smoke checks.
+- Verification Commands:
+  - `pnpm test`
+  - `pnpm run typecheck`
+  - `pnpm build`
+  - `.venv/bin/pytest tests/integration/test_packaging_install.py --tb=short -q`
+  - `.venv/bin/pytest tests/integration/test_dashboard_app_integration.py --tb=short -q`
+- Consumption Proof:
+  - Runtime path: default `DashboardConfig().static_dir` resolves to package static directory and serves `index.html`.
+  - Integration tests: packaging test inspects wheel/sdist members and verifies installed-package static directory contains `index.html`.
+
+## UI Epic Integration Verification Walkthrough (IC-01 .. IC-22)
+
+- IC-01: `openeinstein dashboard` command registered and tested in `tests/integration/test_dashboard_cli_integration.py`.
+- IC-02: `create_dashboard_app` DI wiring validated in `tests/integration/test_dashboard_app_integration.py`.
+- IC-03: SPA static + fallback route reachability validated in `tests/integration/test_dashboard_app_integration.py`.
+- IC-04: HTTP auth dependency and WS token handshake validated in `tests/integration/test_dashboard_api_contract_integration.py` and `tests/integration/test_dashboard_ws_integration.py`.
+- IC-05: WS protocol route `/ws/control` and message handling validated in `tests/integration/test_dashboard_ws_integration.py`.
+- IC-06: heartbeat/sync/reconnect state handling validated across `tests/integration/test_dashboard_ws_integration.py`, `ui/src/stores/ws.test.ts`, and `ui/src/App.nl-layout-mobile.test.tsx`.
+- IC-07: runs lifecycle handlers wired to control plane in `tests/integration/test_dashboard_api_contract_integration.py`.
+- IC-08: approvals handlers wired to approvals store in `tests/integration/test_dashboard_api_contract_integration.py` and `ui/src/App.approvals.test.tsx`.
+- IC-09: artifacts list/preview/download/export wiring validated in `tests/integration/test_dashboard_api_contract_integration.py` and `ui/src/App.artifacts.test.tsx`.
+- IC-10: tools list/test wiring validated in `ui/src/App.tools-settings.test.tsx`.
+- IC-11: config/system endpoints and runtime metadata validated in `tests/integration/test_dashboard_app_integration.py` and `ui/src/App.remote-settings.test.tsx`.
+- IC-12: export endpoint and download wiring validated in `tests/integration/test_dashboard_api_contract_integration.py` and `ui/src/App.artifacts.test.tsx`.
+- IC-13: UI route mounting validated in `ui/src/App.routes.test.tsx`.
+- IC-14: store bootstrap + WS delta flow validated in `ui/src/App.cost.test.tsx`, `ui/src/App.approvals.test.tsx`, and `ui/src/stores/*` tests.
+- IC-15: notification emitter/subscriber path validated in `ui/src/App.cost.test.tsx` and `ui/src/stores/notifications.test.ts`.
+- IC-16: command registry dispatch validated in `ui/src/App.commands.test.tsx` and NL mode in `ui/src/App.nl-layout-mobile.test.tsx`.
+- IC-17: replay/compare/confidence route dataflow validated in `ui/src/App.replay.test.tsx`, `ui/src/App.compare.test.tsx`, and `ui/src/components/compare/ComparePanel.test.tsx`.
+- IC-18: remote wizard + webhook/email settings validated in `ui/src/App.remote-settings.test.tsx` and `tests/integration/test_dashboard_api_contract_integration.py`.
+- IC-19: builder + marketplace wiring validated in `ui/src/App.builder-marketplace.test.tsx` and backend contract test.
+- IC-20: NL intent endpoint uses role-based router and is consumed by command palette in `src/openeinstein/gateway/api/intent.py` and `ui/src/App.nl-layout-mobile.test.tsx`.
+- IC-21: packaged UI assets included and served via default static dir; validated in `tests/integration/test_packaging_install.py` and `tests/integration/test_dashboard_app_integration.py`.
+- IC-22: no-orphan guard satisfied; each new API/route/component path above has runtime consumers and at least one integration/UI test consumer.

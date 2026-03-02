@@ -15,6 +15,7 @@ from openeinstein.gateway.api import (
     build_artifacts_router,
     build_auth_router,
     build_config_router,
+    build_intent_router,
     build_runs_router,
     build_system_router,
     build_tools_router,
@@ -104,6 +105,7 @@ def create_dashboard_app(config: DashboardConfig, deps: DashboardDeps) -> FastAP
     protected_router.include_router(build_artifacts_router(deps))
     protected_router.include_router(build_tools_router(deps))
     protected_router.include_router(build_config_router(config))
+    protected_router.include_router(build_intent_router(deps))
     api_router.include_router(protected_router)
 
     app.include_router(api_router)

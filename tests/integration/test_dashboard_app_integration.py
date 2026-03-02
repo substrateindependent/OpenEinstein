@@ -39,3 +39,9 @@ def test_dashboard_app_serves_health_version_and_spa_fallback(tmp_path: Path) ->
     fallback = client.get("/runs/run-123")
     assert fallback.status_code == 200
     assert "<h1>UI</h1>" in fallback.text
+
+
+def test_dashboard_config_uses_packaged_static_assets_by_default() -> None:
+    config = DashboardConfig()
+    assert config.static_dir.exists()
+    assert (config.static_dir / "index.html").exists()

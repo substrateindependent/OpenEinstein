@@ -116,10 +116,15 @@ Each ticket that introduces an artifact must include:
 - UI-017: Command palette with keyboard shortcut (`Cmd/Ctrl+K`), navigation commands, and mutation command dispatch.
 - UI-018: Run replay/inspection baseline with event inspector, fork-from-event API flow, and runtime verbosity controls over WS.
 - UI-019: Compare route with run selection, tag/filter controls, confidence panel, and compare/tag API wiring.
+- UI-020: Remote safety checks and webhook/email settings test actions wired through system API routes.
+- UI-021: Schema-driven campaign builder route with dynamic field rendering from pack schema endpoint and run-start wiring.
+- UI-022: Pack marketplace route with curated catalog, install flow, and post-install security scan reporting.
+- UI-023: NL command mode routed through backend intent endpoint with model-role resolution, plus persisted layout customization and mobile nav behavior.
+- UI-024: Packaging/CI hardening with bundled static UI assets in wheel/sdist, sync script, CI Node+Python verification, and packaging install tests.
 
 ### In Progress / Not Yet Implemented
 
-- UI-020 through UI-024 remain open (remote+webhook wizard, campaign builder + marketplace, NL command mode/layout customization, packaging/CI hardening).
+- None. UI-001 through UI-024 are implemented and verified.
 
 ### Key Files Changed
 
@@ -132,9 +137,16 @@ Each ticket that introduces an artifact must include:
   - `src/openeinstein/cli/main.py`
   - `src/openeinstein/gateway/control_plane.py`
   - `src/openeinstein/tools/tool_bus.py`
+  - `scripts/sync-control-ui-assets.py`
+  - `MANIFEST.in`
+  - `.github/workflows/ci.yml`
+  - `src/openeinstein/gateway/web/static/control-ui/*`
 - Frontend:
   - `ui/src/App.tsx`
   - `ui/src/components/commands/CommandPalette.tsx`
+  - `ui/src/components/builder/CampaignBuilder.tsx`
+  - `ui/src/components/marketplace/PackMarketplace.tsx`
+  - `ui/src/components/layout/LayoutCustomizer.tsx`
   - `ui/src/components/approvals/ApprovalsCenter.tsx`
   - `ui/src/components/runs/ApprovalBanner.tsx`
   - `ui/src/components/artifacts/ArtifactsBrowser.tsx`
@@ -143,6 +155,7 @@ Each ticket that introduces an artifact must include:
   - `ui/src/stores/*`
   - `ui/src/lib/apiClient.ts`
   - `ui/src/types/*`
+  - `ui/src/stores/layout.ts`
   - `ui/vite.config.ts`
   - `ui/package.json`
 
@@ -154,3 +167,4 @@ Each ticket that introduces an artifact must include:
 - `.venv/bin/pytest --tb=short -q` passes.
 - `.venv/bin/ruff check src/ tests/` passes.
 - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports` passes.
+- `.venv/bin/openeinstein --help`, `.venv/bin/openeinstein config --validate`, `.venv/bin/openeinstein eval list`, and `.venv/bin/openeinstein pack list` pass.

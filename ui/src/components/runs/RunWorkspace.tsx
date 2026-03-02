@@ -1,5 +1,6 @@
 import type { RunSummary } from '../../types/api'
 import type { TimelineEvent } from '../../stores/runs'
+import { useLayoutStore } from '../../stores/layout'
 
 type RunWorkspaceProps = {
   runs: RunSummary[]
@@ -38,6 +39,8 @@ export function RunWorkspace({
   onSelectEvent,
   currentRunCostUsd,
 }: RunWorkspaceProps) {
+  const panelLayout = useLayoutStore((state) => state.panelLayout)
+
   return (
     <section className="run-workspace">
       <div className="run-toolbar">
@@ -85,7 +88,7 @@ export function RunWorkspace({
         </div>
       </div>
 
-      <div className="run-panels">
+      <div className={`run-panels layout-${panelLayout}`}>
         <aside className="run-panel progress-panel">
           <h3>Progress Tracker</h3>
           {loading && <p>Loading runs...</p>}

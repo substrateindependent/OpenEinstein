@@ -95,3 +95,57 @@ export type ComparedRun = {
 export type CompareRunsResponse = {
   runs: ComparedRun[]
 }
+
+export type PackRecord = {
+  id: string
+  path?: string
+  name?: string
+  description?: string
+  trust_tier?: string
+  installed?: boolean
+}
+
+export type PacksResponse = {
+  packs: PackRecord[]
+}
+
+export type PackSchemaField = {
+  name: string
+  label: string
+  type: 'string' | 'number'
+  required: boolean
+  default?: string | number | null
+}
+
+export type PackSchemaResponse = {
+  pack_id: string
+  campaign_path: string
+  title: string
+  description: string
+  fields: PackSchemaField[]
+}
+
+export type PackInstallResponse = {
+  pack_id: string
+  installed_path: string
+  scan_findings: Array<{
+    rule_id: string
+    severity: string
+    path: string
+    line: number
+    message: string
+  }>
+}
+
+export type IntentCommandResponse = {
+  action: string
+  route: string
+  message: string
+  run_id?: string
+  resolved_role: 'reasoning' | 'generation' | 'fast' | 'embeddings'
+  resolved_model: {
+    provider: string
+    model: string
+  }
+  toolbus_used: boolean
+}

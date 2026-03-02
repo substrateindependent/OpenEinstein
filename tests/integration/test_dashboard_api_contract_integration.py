@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -16,6 +17,43 @@ def _client(tmp_path: Path) -> TestClient:
     static_root = tmp_path / "control-ui"
     static_root.mkdir(parents=True, exist_ok=True)
     (static_root / "index.html").write_text("<html><body>ui</body></html>", encoding="utf-8")
+
+    packs_root = tmp_path / "campaign-packs"
+    installed_pack = packs_root / "installed-pack"
+    installed_pack.mkdir(parents=True, exist_ok=True)
+    (installed_pack / "campaign.yaml").write_text(
+        "\n".join(
+            [
+                "campaign:",
+                "  name: Installed Pack",
+                "  version: 0.1.0",
+                "  search_space:",
+                "    generator_skill: installed-skill",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    marketplace_pack = packs_root / "_marketplace" / "market-pack"
+    marketplace_pack.mkdir(parents=True, exist_ok=True)
+    (marketplace_pack / "campaign.yaml").write_text(
+        "\n".join(
+            [
+                "campaign:",
+                "  name: Market Pack",
+                "  version: 0.1.0",
+                "  search_space:",
+                "    generator_skill: market-skill",
+                "  gate_pipeline:",
+                "    - name: gate",
+                "      skill: gate-skill",
+                "      timeout_seconds: 12",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    os.environ["OPENEINSTEIN_PACKS_ROOT"] = str(packs_root)
+    os.environ["OPENEINSTEIN_MARKETPLACE_ROOT"] = str(packs_root / "_marketplace")
+
     app = create_dashboard_app(
         config=DashboardConfig(base_path="/", static_dir=static_root),
         deps=DashboardDeps(
@@ -76,6 +114,49 @@ def test_run_endpoints_require_auth_and_support_lifecycle(tmp_path: Path) -> Non
     compared = client.get(f"/api/v1/runs/compare?run_ids={run_id},{forked.json()['run_id']}", headers=headers)
     assert compared.status_code == 200
     assert len(compared.json()["runs"]) == 2
+
+    packs = client.get("/api/v1/packs", headers=headers)
+    assert packs.status_code == 200
+    assert any(item["id"] == "installed-pack" for item in packs.json()["packs"])
+
+    schema = client.get("/api/v1/packs/installed-pack/schema", headers=headers)
+    assert schema.status_code == 200
+    assert schema.json()["pack_id"] == "installed-pack"
+    assert len(schema.json()["fields"]) >= 1
+
+    marketplace = client.get("/api/v1/packs/marketplace", headers=headers)
+    assert marketplace.status_code == 200
+    assert any(item["id"] == "market-pack" for item in marketplace.json()["packs"])
+
+    install = client.post("/api/v1/packs/install", json={"pack_id": "market-pack"}, headers=headers)
+    assert install.status_code == 200
+    assert install.json()["pack_id"] == "market-pack"
+    assert isinstance(install.json()["scan_findings"], list)
+
+    packs_after_install = client.get("/api/v1/packs", headers=headers)
+    assert packs_after_install.status_code == 200
+    assert any(item["id"] == "market-pack" for item in packs_after_install.json()["packs"])
+
+    intent_nav = client.post(
+        "/api/v1/intent/command",
+        json={"command": "open settings"},
+        headers=headers,
+    )
+    assert intent_nav.status_code == 200
+    assert intent_nav.json()["route"] == "/settings"
+    assert intent_nav.json()["resolved_role"] == "fast"
+
+    intent_start = client.post(
+        "/api/v1/intent/command",
+        json={"command": "start run now"},
+        headers=headers,
+    )
+    assert intent_start.status_code == 200
+    started_from_intent = intent_start.json()["run_id"]
+    assert started_from_intent
+    listed_after_intent = client.get("/api/v1/runs", headers=headers)
+    assert listed_after_intent.status_code == 200
+    assert any(run["run_id"] == started_from_intent for run in listed_after_intent.json()["runs"])
 
     events = client.get(f"/api/v1/runs/{run_id}/events", headers=headers)
     assert events.status_code == 200

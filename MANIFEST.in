@@ -1,0 +1,1 @@
+recursive-include src/openeinstein/gateway/web/static/control-ui *

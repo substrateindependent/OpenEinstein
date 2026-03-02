@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tarfile
 import venv
+import zipfile
 from pathlib import Path
 
 
@@ -37,14 +39,42 @@ def test_clean_venv_install_from_wheel_and_sdist(tmp_path: Path) -> None:
 
     wheel_file = sorted(dist_dir.glob("openeinstein-*.whl"))[-1]
     sdist_file = sorted(dist_dir.glob("openeinstein-*.tar.gz"))[-1]
+    with zipfile.ZipFile(wheel_file) as wheel_zip:
+        members = wheel_zip.namelist()
+        assert any(
+            name.endswith("openeinstein/gateway/web/static/control-ui/index.html")
+            for name in members
+        )
+    with tarfile.open(sdist_file, "r:gz") as sdist_tar:
+        members = sdist_tar.getnames()
+        assert any(
+            name.endswith("src/openeinstein/gateway/web/static/control-ui/index.html")
+            for name in members
+        )
 
     clean_venv = tmp_path / "clean-venv"
     venv.EnvBuilder(with_pip=True, clear=True).create(clean_venv)
     pip_exe = _venv_executable(clean_venv, "pip")
     oe_exe = _venv_executable(clean_venv, "openeinstein")
+    py_exe = _venv_executable(clean_venv, "python")
 
     # Wheel install validation.
     _run([str(pip_exe), "install", str(wheel_file)], cwd=repo_root)
+    _run(
+        [
+            str(py_exe),
+            "-c",
+            (
+                "from pathlib import Path; "
+                "from openeinstein.gateway.web.config import DashboardConfig; "
+                "static_dir = Path(DashboardConfig().static_dir); "
+                "assert static_dir.exists(); "
+                "assert (static_dir / 'index.html').exists(); "
+                "assert 'site-packages' in str(static_dir) or 'dist-packages' in str(static_dir)"
+            ),
+        ],
+        cwd=repo_root,
+    )
     _run([str(oe_exe), "--help"], cwd=repo_root)
     _run(
         [

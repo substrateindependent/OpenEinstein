@@ -53,7 +53,7 @@ This document tracks the live architecture of the repository.
   - Packaging hardening:
     - MCP adapter console scripts (`openeinstein-mcp-*`)
     - Clean-venv wheel/sdist install validation
-- Control UI implementation (EPIC-001, partial through UI-019):
+- Control UI implementation (EPIC-001, UI-001 through UI-024 complete):
   - FastAPI dashboard app factory at `openeinstein.gateway.web.create_dashboard_app`
   - HTTP API v1 routers under `openeinstein.gateway.api`:
     - pairing auth (`/api/v1/pair/*`)
@@ -65,8 +65,9 @@ This document tracks the live architecture of the repository.
   - CLI dashboard server command (`openeinstein dashboard`)
   - React/Vite frontend workspace in `ui/` with route shell + Zustand stores wired to API/WS
   - Mounted UI surfaces:
-    - Runs, Approvals, Artifacts, Tools, Settings
+    - Runs, Approvals, Artifacts, Tools, Settings, Builder, Marketplace, Layout
     - command palette (keyboard + button trigger) with navigation and mutation dispatch
+    - natural-language command mode routed through backend intent endpoint
   - Live UI observability and control:
     - inline and global approvals queue with risk-prioritized decisions
     - artifact preview/export flows
@@ -78,6 +79,20 @@ This document tracks the live architecture of the repository.
   - Additional dashboard run APIs:
     - `GET /api/v1/runs/compare?run_ids=...`
     - `POST /api/v1/runs/{run_id}/tags`
+  - Additional dashboard pack/intent APIs:
+    - `GET /api/v1/packs/{pack_id}/schema`
+    - `GET /api/v1/packs/marketplace`
+    - `POST /api/v1/packs/install`
+    - `POST /api/v1/intent/command`
+  - UI-3 workflow extensions:
+    - schema-driven campaign builder flow
+    - curated marketplace install + security scan feedback
+    - persisted per-device layout preferences (`useLayoutStore`) and mobile navigation toggle behavior
+  - Packaging/CI hardening:
+    - packaged static assets under `src/openeinstein/gateway/web/static/control-ui`
+    - asset sync script (`scripts/sync-control-ui-assets.py`)
+    - wheel/sdist packaging assertions for bundled UI assets
+    - CI runs Node (frontend test/typecheck/build) + Python checks
   - Frontend build artifacts emitted to `dist/control-ui` and served by gateway
 
 ## Key Boundaries
@@ -90,4 +105,4 @@ This document tracks the live architecture of the repository.
 ## Status
 
 Sequential task execution from 0.1 through 7.7 is implemented and validated in-repo.  
-UI epic implementation is active, with backend/frontend contracts through UI-019 complete.
+UI epic implementation is complete through UI-024 with IC-01 through IC-22 integration verification.

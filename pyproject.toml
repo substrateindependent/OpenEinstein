@@ -77,6 +77,13 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"openeinstein.gateway.web" = [
+  "static/control-ui/index.html",
+  "static/control-ui/vite.svg",
+  "static/control-ui/assets/*",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]

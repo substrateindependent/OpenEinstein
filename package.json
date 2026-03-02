@@ -5,7 +5,9 @@
   "scripts": {
     "test": "pnpm --dir ui test",
     "typecheck": "pnpm --dir ui typecheck",
-    "build": "pnpm --dir ui build",
+    "build": "pnpm --dir ui build && python3 scripts/sync-control-ui-assets.py",
+    "build:ui": "pnpm --dir ui build",
+    "sync-ui-assets": "python3 scripts/sync-control-ui-assets.py",
     "e2e": "pnpm --dir ui e2e"
   }
 }

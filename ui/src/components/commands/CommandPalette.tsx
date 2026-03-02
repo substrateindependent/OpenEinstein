@@ -10,10 +10,14 @@ type CommandPaletteProps = {
   open: boolean
   commands: PaletteCommand[]
   onClose: () => void
+  onRunNaturalLanguage?: (command: string) => Promise<string | void>
 }
 
-export function CommandPalette({ open, commands, onClose }: CommandPaletteProps) {
+export function CommandPalette({ open, commands, onClose, onRunNaturalLanguage }: CommandPaletteProps) {
   const [query, setQuery] = useState('')
+  const [nlMode, setNlMode] = useState(false)
+  const [nlCommand, setNlCommand] = useState('')
+  const [nlMessage, setNlMessage] = useState('')
 
   const filtered = useMemo(() => {
     const lowered = query.trim().toLowerCase()
@@ -36,28 +40,63 @@ export function CommandPalette({ open, commands, onClose }: CommandPaletteProps)
         </button>
       </div>
       <input
-        aria-label="Command search"
-        type="text"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Type a command..."
+        aria-label="Natural language mode"
+        type="checkbox"
+        checked={nlMode}
+        onChange={(event) => setNlMode(event.target.checked)}
       />
-      <ul className="command-list">
-        {filtered.map((command) => (
-          <li key={command.id}>
-            <button
-              type="button"
-              onClick={async () => {
-                await command.run()
-                setQuery('')
-                onClose()
-              }}
-            >
-              {command.label}
-            </button>
-          </li>
-        ))}
-      </ul>
+      {nlMode ? (
+        <div className="nl-command-form">
+          <input
+            aria-label="Natural language command"
+            type="text"
+            value={nlCommand}
+            onChange={(event) => setNlCommand(event.target.value)}
+            placeholder="e.g. open settings or start run"
+          />
+          <button
+            type="button"
+            onClick={async () => {
+              if (!onRunNaturalLanguage || !nlCommand.trim()) {
+                return
+              }
+              const message = await onRunNaturalLanguage(nlCommand.trim())
+              setNlMessage(message ?? '')
+              setNlCommand('')
+              onClose()
+            }}
+          >
+            Run NL command
+          </button>
+          {nlMessage ? <p>{nlMessage}</p> : null}
+        </div>
+      ) : (
+        <>
+          <input
+            aria-label="Command search"
+            type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Type a command..."
+          />
+          <ul className="command-list">
+            {filtered.map((command) => (
+              <li key={command.id}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await command.run()
+                    setQuery('')
+                    onClose()
+                  }}
+                >
+                  {command.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </section>
   )
 }

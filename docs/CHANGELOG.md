@@ -45,6 +45,26 @@
   - run tag update + tag filter UX on compare results
   - backend compare/tags endpoints (`GET /api/v1/runs/compare`, `POST /api/v1/runs/{run_id}/tags`)
   - compare integration tests for route mount, compare request path, and tag mutation wiring
+- Added UI-020 safe-remote and notification-channel settings:
+  - backend endpoints for remote safety checks and webhook/email test dispatch
+  - settings UI actions and integration tests for those paths
+- Added UI-021 schema-driven campaign builder:
+  - new pack schema API (`GET /api/v1/packs/{pack_id}/schema`)
+  - builder route (`/builder`) that renders dynamic form fields and starts runs
+- Added UI-022 pack marketplace install flow:
+  - marketplace APIs (`GET /api/v1/packs/marketplace`, `POST /api/v1/packs/install`)
+  - curated marketplace sample pack under `campaign-packs/_marketplace/`
+  - install-time security scanner feedback wiring
+- Added UI-023 NL command and layout/mobile features:
+  - intent API (`POST /api/v1/intent/command`) using role-based model routing
+  - command palette NL mode wired through backend intent endpoint
+  - layout customization route/store with persistent panel presets
+  - mobile navigation toggle behavior for narrow viewports
+- Completed UI-024 packaging and CI hardening:
+  - build/sync script for bundling UI assets into `src/openeinstein/gateway/web/static/control-ui/`
+  - wheel/sdist packaging assertions for bundled control UI assets
+  - CI now runs Node frontend checks (test/typecheck/build) in addition to Python checks
+  - default dashboard static asset path now resolves to packaged assets when present
 
 ## 2026-03-01
 

@@ -4,9 +4,12 @@ import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom'
 
 import { ApprovalsCenter } from './components/approvals/ApprovalsCenter'
 import { ArtifactsBrowser } from './components/artifacts/ArtifactsBrowser'
+import { CampaignBuilder } from './components/builder/CampaignBuilder'
 import { CommandPalette } from './components/commands/CommandPalette'
 import { ComparePanel } from './components/compare/ComparePanel'
 import { GatewayStatus } from './components/layout/GatewayStatus'
+import { LayoutCustomizer } from './components/layout/LayoutCustomizer'
+import { PackMarketplace } from './components/marketplace/PackMarketplace'
 import { ApprovalBanner } from './components/runs/ApprovalBanner'
 import { RunWizard } from './components/runs/RunWizard'
 import { SettingsPanel } from './components/settings/SettingsPanel'
@@ -18,7 +21,11 @@ import {
   decideApproval,
   exportRun,
   forkRun,
+  getPackSchema,
+  installMarketplacePack,
   listApprovals,
+  listMarketplacePacks,
+  listPacks,
   listTools,
   listRunArtifacts,
   loadDashboardConfig,
@@ -35,11 +42,13 @@ import {
   testWebhook,
   updateRunTags,
   validateDashboardConfig,
+  resolveIntentCommand,
 } from './lib/apiClient'
 import { RunWorkspace } from './components/runs/RunWorkspace'
 import type { ApprovalDecision } from './stores/approvals'
 import { useApprovalsStore } from './stores/approvals'
 import { useCostStore } from './stores/cost'
+import { useLayoutStore } from './stores/layout'
 import { useNotificationsStore } from './stores/notifications'
 import { useRunsStore } from './stores/runs'
 import { useSessionStore } from './stores/session'
@@ -493,10 +502,166 @@ function ComparePage() {
   )
 }
 
+function BuilderPage() {
+  const token = useSessionStore((state) => state.token)
+  const runs = useRunsStore((state) => state.runs)
+  const setRuns = useRunsStore((state) => state.setRuns)
+  const applyEvent = useRunsStore((state) => state.applyEvent)
+  const navigate = useNavigate()
+  const [packs, setPacks] = useState<Array<{ id: string }>>([])
+  const [selectedPackId, setSelectedPackId] = useState('')
+  const [schema, setSchema] = useState<{
+    pack_id: string
+    campaign_path: string
+    title: string
+    description: string
+    fields: Array<{ name: string; label: string; type: 'string' | 'number'; required: boolean; default?: string | number | null }>
+  } | null>(null)
+  const [values, setValues] = useState<Record<string, string>>({})
+  const [submitMessage, setSubmitMessage] = useState('')
+
+  useEffect(() => {
+    if (!token) {
+      return
+    }
+    let active = true
+    void listPacks(token).then((response) => {
+      if (!active) {
+        return
+      }
+      setPacks(response.packs)
+      if (response.packs.length > 0) {
+        const firstPack = response.packs[0].id
+        setSelectedPackId(firstPack)
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (!token || !selectedPackId) {
+      setSchema(null)
+      return
+    }
+    let active = true
+    void getPackSchema(token, selectedPackId)
+      .then((nextSchema) => {
+        if (!active) {
+          return
+        }
+        setSchema(nextSchema)
+        const defaults: Record<string, string> = {}
+        for (const field of nextSchema.fields) {
+          defaults[field.name] = field.default === undefined || field.default === null ? '' : String(field.default)
+        }
+        setValues(defaults)
+      })
+      .catch(() => {
+        if (active) {
+          setSchema(null)
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [selectedPackId, token])
+
+  async function onSubmit() {
+    if (!token || !schema) {
+      return
+    }
+    const started = await startRun(token, schema.campaign_path)
+    setRuns([
+      ...runs,
+      {
+        run_id: started.run_id,
+        status: started.status,
+        started_at: new Date().toISOString(),
+      },
+    ])
+    applyEvent({
+      type: 'run_event',
+      payload: {
+        run_id: started.run_id,
+        summary: `Run started from builder (${schema.pack_id})`,
+        parameters: values,
+      },
+    })
+    setSubmitMessage(`Started run ${started.run_id} from ${schema.pack_id}`)
+    navigate('/')
+  }
+
+  return (
+    <CampaignBuilder
+      packs={packs}
+      selectedPackId={selectedPackId}
+      schema={schema}
+      values={values}
+      submitMessage={submitMessage}
+      onSelectPack={setSelectedPackId}
+      onUpdateValue={(name, value) => setValues((state) => ({ ...state, [name]: value }))}
+      onSubmit={onSubmit}
+    />
+  )
+}
+
+function MarketplacePage() {
+  const token = useSessionStore((state) => state.token)
+  const [packs, setPacks] = useState<Array<{ id: string; name?: string; description?: string; trust_tier?: string; installed?: boolean }>>([])
+  const [installMessage, setInstallMessage] = useState('')
+
+  const refresh = useCallback(async () => {
+    if (!token) {
+      return
+    }
+    const listed = await listMarketplacePacks(token)
+    setPacks(listed.packs)
+  }, [token])
+
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
+
+  async function onInstall(packId: string) {
+    if (!token) {
+      return
+    }
+    const result = await installMarketplacePack(token, packId)
+    const findings = result.scan_findings.length
+    setInstallMessage(
+      findings > 0
+        ? `Installed ${packId} with ${findings} scan finding(s).`
+        : `Installed ${packId} with no scan findings.`,
+    )
+    await refresh()
+  }
+
+  return <PackMarketplace packs={packs} installMessage={installMessage} onInstall={onInstall} />
+}
+
+function LayoutPage() {
+  const panelLayout = useLayoutStore((state) => state.panelLayout)
+  const compactNav = useLayoutStore((state) => state.compactNav)
+  const setPanelLayout = useLayoutStore((state) => state.setPanelLayout)
+  const setCompactNav = useLayoutStore((state) => state.setCompactNav)
+
+  return (
+    <LayoutCustomizer
+      panelLayout={panelLayout}
+      compactNav={compactNav}
+      onChangePanelLayout={setPanelLayout}
+      onToggleCompactNav={setCompactNav}
+    />
+  )
+}
+
 function Shell() {
   const navigate = useNavigate()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(true)
   const token = useSessionStore((state) => state.token)
   const setToken = useSessionStore((state) => state.setToken)
   const activeSummary = useRunsStore((state) => state.activeSummary)
@@ -517,6 +682,8 @@ function Shell() {
   const gatewayStatus = useWSStore((state) => state.status)
   const connect = useWSStore((state) => state.connect)
   const disconnect = useWSStore((state) => state.disconnect)
+  const compactNav = useLayoutStore((state) => state.compactNav)
+  const hydrateLayout = useLayoutStore((state) => state.hydrate)
   const handleEvent = useCallback(
     (event: WSEvent) => {
       applyEvent(event)
@@ -526,6 +693,25 @@ function Shell() {
     },
     [applyApprovalEvent, applyCostEvent, applyEvent, applyNotificationEvent],
   )
+
+  useEffect(() => {
+    hydrateLayout()
+  }, [hydrateLayout])
+
+  useEffect(() => {
+    function reconcileMobileNav() {
+      if (window.innerWidth <= 900) {
+        setMobileNavOpen(false)
+      } else {
+        setMobileNavOpen(true)
+      }
+    }
+    reconcileMobileNav()
+    window.addEventListener('resize', reconcileMobileNav)
+    return () => {
+      window.removeEventListener('resize', reconcileMobileNav)
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -570,6 +756,37 @@ function Shell() {
 
   const selectedRunCost = selectedRunId ? runCosts[selectedRunId]?.estimated_cost_usd ?? 0 : 0
 
+  const onRunNaturalLanguage = useCallback(
+    async (command: string): Promise<string> => {
+      if (!token) {
+        return 'Missing session token'
+      }
+      const resolved = await resolveIntentCommand(token, command)
+      if (resolved.action === 'start_run' && resolved.run_id) {
+        setRuns([
+          ...runs,
+          {
+            run_id: resolved.run_id,
+            status: 'running',
+            started_at: new Date().toISOString(),
+          },
+        ])
+        applyEvent({
+          type: 'run_event',
+          payload: {
+            run_id: resolved.run_id,
+            summary: 'Run started via natural language command',
+          },
+        })
+      }
+      if (resolved.route) {
+        navigate(resolved.route)
+      }
+      return `${resolved.message} (${resolved.resolved_role}: ${resolved.resolved_model.provider}/${resolved.resolved_model.model})`
+    },
+    [applyEvent, navigate, runs, setRuns, token],
+  )
+
   const commandPaletteCommands = useMemo(
     () => [
       {
@@ -601,6 +818,21 @@ function Shell() {
         id: 'go-settings',
         label: 'Open Settings',
         run: () => navigate('/settings'),
+      },
+      {
+        id: 'go-builder',
+        label: 'Open Builder',
+        run: () => navigate('/builder'),
+      },
+      {
+        id: 'go-marketplace',
+        label: 'Open Marketplace',
+        run: () => navigate('/marketplace'),
+      },
+      {
+        id: 'go-layout',
+        label: 'Open Layout',
+        run: () => navigate('/layout'),
       },
       {
         id: 'start-sample-run',
@@ -658,6 +890,7 @@ function Shell() {
         open={commandPaletteOpen}
         commands={commandPaletteCommands}
         onClose={() => setCommandPaletteOpen(false)}
+        onRunNaturalLanguage={onRunNaturalLanguage}
       />
       {notificationsOpen && (
         <section className="notification-drawer" aria-label="Notifications">
@@ -681,7 +914,10 @@ function Shell() {
         </section>
       )}
       <div className="body">
-        <nav className="nav">
+        <button type="button" className="mobile-nav-toggle" onClick={() => setMobileNavOpen((value) => !value)}>
+          Toggle navigation
+        </button>
+        <nav className={`nav${mobileNavOpen ? ' nav-open' : ''}${compactNav ? ' nav-compact' : ''}`} data-open={mobileNavOpen}>
           <button type="button" onClick={() => navigate('/')}>
             Runs
           </button>
@@ -700,6 +936,15 @@ function Shell() {
           <button type="button" onClick={() => navigate('/settings')}>
             Settings
           </button>
+          <button type="button" onClick={() => navigate('/builder')}>
+            Builder
+          </button>
+          <button type="button" onClick={() => navigate('/marketplace')}>
+            Marketplace
+          </button>
+          <button type="button" onClick={() => navigate('/layout')}>
+            Layout
+          </button>
         </nav>
         <main className="content">
           <Routes>
@@ -709,6 +954,9 @@ function Shell() {
             <Route path="/compare" element={<ComparePage />} />
             <Route path="/tools" element={<ToolsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/builder" element={<BuilderPage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/layout" element={<LayoutPage />} />
           </Routes>
         </main>
       </div>

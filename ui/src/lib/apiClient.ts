@@ -8,6 +8,10 @@ import type {
   DashboardSettings,
   ExportRunResponse,
   ForkRunResponse,
+  IntentCommandResponse,
+  PackInstallResponse,
+  PacksResponse,
+  PackSchemaResponse,
   RunsResponse,
   StartRunResponse,
   ToolsResponse,
@@ -245,6 +249,47 @@ export async function compareRuns(
   return parseJson<CompareRunsResponse>(response)
 }
 
+export async function listPacks(token: string, baseUrl = ''): Promise<PacksResponse> {
+  const response = await fetch(`${baseUrl}/api/v1/packs`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return parseJson<PacksResponse>(response)
+}
+
+export async function getPackSchema(
+  token: string,
+  packId: string,
+  baseUrl = '',
+): Promise<PackSchemaResponse> {
+  const response = await fetch(`${baseUrl}/api/v1/packs/${encodeURIComponent(packId)}/schema`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return parseJson<PackSchemaResponse>(response)
+}
+
+export async function listMarketplacePacks(token: string, baseUrl = ''): Promise<PacksResponse> {
+  const response = await fetch(`${baseUrl}/api/v1/packs/marketplace`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return parseJson<PacksResponse>(response)
+}
+
+export async function installMarketplacePack(
+  token: string,
+  packId: string,
+  baseUrl = '',
+): Promise<PackInstallResponse> {
+  const response = await fetch(`${baseUrl}/api/v1/packs/install`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ pack_id: packId }),
+  })
+  return parseJson<PackInstallResponse>(response)
+}
+
 export async function updateRunTags(
   token: string,
   runId: string,
@@ -308,4 +353,20 @@ export async function testEmail(
     body: JSON.stringify({ email }),
   })
   return parseJson<{ ok: boolean; message: string }>(response)
+}
+
+export async function resolveIntentCommand(
+  token: string,
+  command: string,
+  baseUrl = '',
+): Promise<IntentCommandResponse> {
+  const response = await fetch(`${baseUrl}/api/v1/intent/command`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ command }),
+  })
+  return parseJson<IntentCommandResponse>(response)
 }

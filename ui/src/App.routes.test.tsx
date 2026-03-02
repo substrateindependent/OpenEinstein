@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import App from './App'
 
 describe('App routing and shell', () => {
-  it('renders shell chrome and navigates to settings, approvals, artifacts, compare, and tools', async () => {
+  it('renders shell chrome and navigates to settings, approvals, artifacts, compare, tools, builder, marketplace, and layout', async () => {
     render(<App />)
     expect(await screen.findByRole('heading', { name: /OpenEinstein Control UI/i })).toBeInTheDocument()
     expect(screen.getByText(/Gateway:/i)).toBeInTheDocument()
@@ -25,5 +25,14 @@ describe('App routing and shell', () => {
 
     await user.click(screen.getByRole('button', { name: /Settings/i }))
     expect(screen.getByRole('heading', { name: /Settings/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Builder/i }))
+    expect(screen.getByRole('heading', { name: /Campaign Builder/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Marketplace/i }))
+    expect(screen.getByRole('heading', { name: /Pack Marketplace/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Layout/i }))
+    expect(screen.getByRole('heading', { name: /Layout Customization/i })).toBeInTheDocument()
   })
 })
