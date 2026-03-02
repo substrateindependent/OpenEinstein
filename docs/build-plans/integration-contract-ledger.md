@@ -1314,3 +1314,84 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - Consumption Proof:
   - Runtime path: App bootstrap performs pairing, loads runs, and binds WS events into store state.
   - Integration/UI tests validate route mounting and state updates from event application.
+
+## UI-010 / UI-011 / UI-012 / UI-013 / UI-014 / UI-015 / UI-016 / UI-017
+
+- Files Created:
+  - Frontend:
+    - `ui/src/components/runs/ApprovalBanner.tsx`
+    - `ui/src/components/approvals/ApprovalsCenter.tsx`
+    - `ui/src/components/artifacts/ArtifactsBrowser.tsx`
+    - `ui/src/components/tools/ToolsPanel.tsx`
+    - `ui/src/components/settings/SettingsPanel.tsx`
+    - `ui/src/components/commands/CommandPalette.tsx`
+    - `ui/src/stores/approvals.ts`
+    - `ui/src/stores/cost.ts`
+    - `ui/src/stores/notifications.ts`
+    - UI integration tests:
+      - `ui/src/App.approvals.test.tsx`
+      - `ui/src/App.artifacts.test.tsx`
+      - `ui/src/App.cost.test.tsx`
+      - `ui/src/App.tools-settings.test.tsx`
+      - `ui/src/App.commands.test.tsx`
+    - UI unit tests:
+      - `ui/src/components/runs/ApprovalBanner.test.tsx`
+      - `ui/src/components/approvals/ApprovalsCenter.test.tsx`
+      - `ui/src/components/artifacts/ArtifactsBrowser.test.tsx`
+      - `ui/src/components/tools/ToolsPanel.test.tsx`
+      - `ui/src/components/settings/SettingsPanel.test.tsx`
+      - `ui/src/components/commands/CommandPalette.test.tsx`
+      - `ui/src/stores/approvals.test.ts`
+      - `ui/src/stores/cost.test.ts`
+      - `ui/src/stores/notifications.test.ts`
+  - Backend:
+    - expanded dashboard API integration assertions in `tests/integration/test_dashboard_api_contract_integration.py`.
+- Files Modified:
+  - Frontend:
+    - `ui/src/App.tsx`
+    - `ui/src/App.css`
+    - `ui/src/components/layout/GatewayStatus.tsx`
+    - `ui/src/components/runs/RunWorkspace.tsx`
+    - `ui/src/lib/apiClient.ts`
+    - `ui/src/types/api.ts`
+    - updated related tests (`App.routes`, `GatewayStatus`, `RunWorkspace`).
+  - Backend:
+    - `src/openeinstein/gateway/api/approvals.py`
+    - `src/openeinstein/gateway/api/artifacts.py`
+    - `src/openeinstein/gateway/api/runs.py`
+- Interfaces Exposed:
+  - Frontend route surfaces: Runs, Approvals, Artifacts, Tools, Settings + command palette.
+  - UI stores and event fan-out:
+    - approvals queue (`approval_required` / `approval_resolved`)
+    - cost aggregation (`cost_update`)
+    - notifications pipeline (approval/cost/error signals)
+  - API client contracts:
+    - approvals list/decide/bulk
+    - run artifact list/preview/export
+    - tool list/test
+    - config load/validate
+  - Gateway status/header contract now includes command palette trigger, notification count, and cost ticker.
+  - Backend artifact preview/metadata now resolve files across exports + control-plane artifacts and return typed preview mode metadata.
+- Database Changes: none.
+- Config Changes: none.
+- Depends On: UI-005/UI-006/UI-007 baseline auth/ws/api + UI-008/UI-009 shell and store plumbing.
+- Depended On By: remaining advanced UI tickets UI-018+ and packaging hardening checks.
+- Verification Commands:
+  - `pnpm test`
+  - `pnpm run typecheck`
+  - `pnpm run build`
+  - `.venv/bin/pytest tests/integration/test_dashboard* --tb=short -q`
+  - `.venv/bin/pytest --tb=short -q`
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/openeinstein/ --ignore-missing-imports`
+- Consumption Proof:
+  - Runtime path:
+    - approval, artifact, cost, tools, settings, and command surfaces are mounted in `App` navigation and command palette registry;
+    - WS events are consumed by runs + approvals + cost + notifications stores through shared `handleEvent` dispatch.
+  - Integration tests:
+    - `ui/src/App.approvals.test.tsx` verifies `approval_required` event mounts banner and decision posts to API.
+    - `ui/src/App.artifacts.test.tsx` verifies artifacts route preview and export download wiring.
+    - `ui/src/App.cost.test.tsx` verifies `cost_update` fan-out to top bar/run panel/status bar/notification drawer.
+    - `ui/src/App.tools-settings.test.tsx` verifies tools test-connection wiring and settings validation call path.
+    - `ui/src/App.commands.test.tsx` verifies command palette navigation + mutation dispatch.
+    - `tests/integration/test_dashboard_api_contract_integration.py` verifies export/artifact endpoint reachability and approvals mutation wiring.

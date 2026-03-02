@@ -48,6 +48,7 @@ describe('RunWorkspace', () => {
           selected.push(runId)
           selectedRunId = runId
         }}
+        currentRunCostUsd={0.47}
       />,
     )
 
@@ -76,6 +77,7 @@ describe('RunWorkspace', () => {
         onStopRun={onStopRun}
         onStartRun={async () => undefined}
         onSelectRun={() => undefined}
+        currentRunCostUsd={0.47}
       />,
     )
 

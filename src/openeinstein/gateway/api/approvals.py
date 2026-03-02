@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -17,16 +19,38 @@ class BulkApprovalRequest(BaseModel):
     approvals: list[ApprovalDecisionRequest]
 
 
+class ApprovalRecord(BaseModel):
+    approval_id: str
+    run_id: str
+    risk: str
+    what: str
+    why: str
+    action: str
+    requested_at: str
+
+
 def build_approvals_router(deps: DashboardDeps) -> APIRouter:
     router = APIRouter(prefix="/approvals", tags=["approvals"])
     store = deps.approvals_store
 
     @router.get("")
-    def list_approvals() -> dict[str, list[dict[str, str]]]:
+    def list_approvals() -> dict[str, list[ApprovalRecord]]:
         if store is None:
             return {"approvals": []}
+        requested_at = datetime.now(tz=UTC).isoformat()
         return {
-            "approvals": [{"action": action, "status": "approved"} for action in store.list()]
+            "approvals": [
+                ApprovalRecord(
+                    approval_id=f"granted-{index}",
+                    run_id="",
+                    risk="low",
+                    what=action,
+                    why="Pre-approved capability from policy store",
+                    action=action,
+                    requested_at=requested_at,
+                )
+                for index, action in enumerate(store.list())
+            ]
         }
 
     @router.post("/{approval_id}/decide")

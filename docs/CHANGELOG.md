@@ -24,6 +24,17 @@
   - auth-protected API run lifecycle
   - websocket handshake/sync command flow
   - frontend route and store wiring tests
+- Completed UI tickets UI-010 through UI-017:
+  - approvals center and inline approval banner with risk sorting and decision/bulk decision actions
+  - artifact browser route with preview rendering and Paper Pack export/download flow
+  - cost observability pipeline with top-bar ticker, run cost panel, status-bar cost summary, and budget warning notifications
+  - tools route with test-connection actions and settings route with config validation + insecure-remote guard messaging
+  - command palette (button + `Cmd/Ctrl+K`) wired to navigation commands and mutation command execution
+- Extended dashboard backend wiring to support these UI contracts:
+  - richer approvals list payloads
+  - artifact metadata/preview/download resolution across export and control-plane artifact paths
+  - run export artifact attachment through control-plane artifact registry
+- Added frontend and backend integration tests for approvals, artifacts/export, cost fan-out, tools/settings actions, and command palette dispatch.
 
 ## 2026-03-01
 

@@ -106,10 +106,18 @@ Each ticket that introduces an artifact must include:
 - UI-007: API v1 baseline routers for runs/approvals/artifacts/tools/config/system/export.
 - UI-008: App shell + route/nav mounting for Runs and Settings.
 - UI-009: Frontend data plumbing baseline (API client + session/runs/ws stores and live wiring).
+- UI-010: Run detail three-panel workflow with selectable timeline and live event rendering.
+- UI-011: Reconnect/error UX surfaced in shell with classified error stack and gateway-state banner.
+- UI-012: Start run wizard + lifecycle controls (pause/resume/stop) with API mutation wiring.
+- UI-013: Approvals center + inline approval banner with risk sorting and decision/bulk-decision wiring.
+- UI-014: Artifacts browser + preview flow + Paper Pack export/download wiring.
+- UI-015: Cost observability and notification fan-out (`cost_update` to top bar/run panel/status/notifications).
+- UI-016: Tools panel + settings surface with test-connection and config validation wiring.
+- UI-017: Command palette with keyboard shortcut (`Cmd/Ctrl+K`), navigation commands, and mutation command dispatch.
 
 ### In Progress / Not Yet Implemented
 
-- UI-010 through UI-024 remain open (live timeline depth, approvals UX completion, artifact previews, cost analytics, command palette, replay/compare/confidence, remote/webhook wizard, builder/marketplace, NL commands, full packaging hardening).
+- UI-018 through UI-024 remain open (replay/fork/verbosity controls, compare/confidence panels, remote+webhook wizard, campaign builder + marketplace, NL command mode/layout customization, packaging/CI hardening).
 
 ### Key Files Changed
 
@@ -124,6 +132,12 @@ Each ticket that introduces an artifact must include:
   - `src/openeinstein/tools/tool_bus.py`
 - Frontend:
   - `ui/src/App.tsx`
+  - `ui/src/components/commands/CommandPalette.tsx`
+  - `ui/src/components/approvals/ApprovalsCenter.tsx`
+  - `ui/src/components/runs/ApprovalBanner.tsx`
+  - `ui/src/components/artifacts/ArtifactsBrowser.tsx`
+  - `ui/src/components/tools/ToolsPanel.tsx`
+  - `ui/src/components/settings/SettingsPanel.tsx`
   - `ui/src/stores/*`
   - `ui/src/lib/apiClient.ts`
   - `ui/src/types/*`

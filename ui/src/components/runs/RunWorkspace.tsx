@@ -11,6 +11,7 @@ type RunWorkspaceProps = {
   onStopRun: (runId: string) => Promise<void>
   onSelectRun: (runId: string) => void
   onStartRun: () => Promise<void>
+  currentRunCostUsd: number
 }
 
 export function RunWorkspace({
@@ -23,6 +24,7 @@ export function RunWorkspace({
   onStopRun,
   onSelectRun,
   onStartRun,
+  currentRunCostUsd,
 }: RunWorkspaceProps) {
   return (
     <section className="run-workspace">
@@ -92,7 +94,7 @@ export function RunWorkspace({
           <h3>Artifacts</h3>
           <p>Artifact previews will appear here.</p>
           <h3>Cost</h3>
-          <p>Cost breakdown panel is loading.</p>
+          <p>Current run: ${currentRunCostUsd.toFixed(2)}</p>
         </aside>
       </div>
     </section>

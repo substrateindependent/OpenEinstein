@@ -82,6 +82,7 @@ def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
         export_root.mkdir(parents=True, exist_ok=True)
         export_file = export_root / f"{run_id}-paper-pack.zip"
         export_file.write_bytes(b"")
+        control.attach_artifact(run_id, "Paper Pack", export_file)
         event_hub.publish("run_event", {"run_id": run_id, "event": "paper_pack_exported"})
         return {"run_id": run_id, "download_url": f"/api/v1/artifacts/{export_file.name}/download"}
 

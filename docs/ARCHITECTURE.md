@@ -53,7 +53,7 @@ This document tracks the live architecture of the repository.
   - Packaging hardening:
     - MCP adapter console scripts (`openeinstein-mcp-*`)
     - Clean-venv wheel/sdist install validation
-- Control UI implementation (EPIC-001, partial through UI-009):
+- Control UI implementation (EPIC-001, partial through UI-017):
   - FastAPI dashboard app factory at `openeinstein.gateway.web.create_dashboard_app`
   - HTTP API v1 routers under `openeinstein.gateway.api`:
     - pairing auth (`/api/v1/pair/*`)
@@ -64,6 +64,14 @@ This document tracks the live architecture of the repository.
   - In-memory event sequencing hub (`openeinstein.gateway.events`) for WS sync replay
   - CLI dashboard server command (`openeinstein dashboard`)
   - React/Vite frontend workspace in `ui/` with route shell + Zustand stores wired to API/WS
+  - Mounted UI surfaces:
+    - Runs, Approvals, Artifacts, Tools, Settings
+    - command palette (keyboard + button trigger) with navigation and mutation dispatch
+  - Live UI observability and control:
+    - inline and global approvals queue with risk-prioritized decisions
+    - artifact preview/export flows
+    - cost ticker fan-out (`cost_update`) into top bar, run panel, status bar, notification drawer
+    - tool health/test panel and config validation UI
   - Frontend build artifacts emitted to `dist/control-ui` and served by gateway
 
 ## Key Boundaries
@@ -76,4 +84,4 @@ This document tracks the live architecture of the repository.
 ## Status
 
 Sequential task execution from 0.1 through 7.7 is implemented and validated in-repo.  
-UI epic implementation is active, with foundational backend/frontend contracts through UI-009 complete.
+UI epic implementation is active, with backend/frontend contracts through UI-017 complete.
