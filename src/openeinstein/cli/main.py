@@ -13,9 +13,9 @@ import yaml  # type: ignore[import-untyped]
 from rich import print as rprint
 
 from openeinstein import __version__
-from openeinstein.campaigns import CampaignConfigLoader
+from openeinstein.campaigns import CampaignConfigLoader, RuntimeLimits
 from openeinstein.evals import EvalRunner, discover_eval_suites
-from openeinstein.gateway import FileBackedControlPlane
+from openeinstein.gateway import ExecutorBackedControlPlane
 from openeinstein.gateway.web import DashboardConfig, DashboardDeps, create_dashboard_app
 from openeinstein.persistence import CampaignDB
 from openeinstein.reports import CampaignReportGenerator
@@ -27,6 +27,7 @@ from openeinstein.tracing import TraceStore
 app = typer.Typer(help="OpenEinstein control plane CLI")
 run_app = typer.Typer(help="Manage campaign runs", invoke_without_command=True)
 pack_app = typer.Typer(help="Install and inspect campaign packs")
+skill_app = typer.Typer(help="Skill registry commands")
 approvals_app = typer.Typer(help="Manage approval state")
 trace_app = typer.Typer(help="Trace inspection and export")
 eval_app = typer.Typer(help="Eval suite commands")
@@ -35,9 +36,11 @@ latex_app = typer.Typer(help="LaTeX publishing toolchain commands")
 sandbox_app = typer.Typer(help="Sandbox diagnostics")
 campaign_app = typer.Typer(help="Campaign data management commands")
 report_app = typer.Typer(help="Campaign report synthesis commands")
+webhook_app = typer.Typer(help="Webhook management commands")
 
 app.add_typer(run_app, name="run")
 app.add_typer(pack_app, name="pack")
+app.add_typer(skill_app, name="skill")
 app.add_typer(approvals_app, name="approvals")
 app.add_typer(trace_app, name="trace")
 app.add_typer(eval_app, name="eval")
@@ -46,6 +49,7 @@ app.add_typer(latex_app, name="latex")
 app.add_typer(sandbox_app, name="sandbox")
 app.add_typer(campaign_app, name="campaign")
 app.add_typer(report_app, name="report")
+app.add_typer(webhook_app, name="webhook")
 
 
 @app.command("version")
@@ -148,11 +152,21 @@ def run_callback(ctx: typer.Context) -> None:
 
 
 @run_app.command("start")
-def run_start(campaign_path: Path = typer.Argument(..., exists=True)) -> None:
+def run_start(
+    campaign_path: Path = typer.Argument(..., exists=True),
+    parallel_lanes: int | None = typer.Option(
+        None,
+        "--parallel-lanes",
+        min=1,
+        help="Max concurrent lanes for step dispatch (default: serial execution)",
+    ),
+) -> None:
     """Start a campaign run."""
-    control = _control_plane()
-    run_id = control.start_run()
-    control.emit_event(run_id, "campaign_path_set", {"campaign_path": str(campaign_path)})
+    limits: RuntimeLimits | None = None
+    if parallel_lanes is not None:
+        limits = RuntimeLimits(parallel_lanes=parallel_lanes)
+    control = _control_plane(runtime_limits=limits)
+    run_id = control.start_run(campaign_path=str(campaign_path))
     rprint(
         f"Started run {run_id} for campaign {campaign_path}. "
         "Use `openeinstein run status <run_id>` to monitor progress."
@@ -223,6 +237,11 @@ def run_status(run_id: str = typer.Argument("latest")) -> None:
     resolved = _resolve_run_id(control, run_id)
     status = control.get_status(resolved)
     rprint(f"Run {resolved}: {status}")
+    lane_status = control.get_lane_status()
+    if lane_status:
+        rprint("Lanes:")
+        for lane_name, info in sorted(lane_status.items()):
+            rprint(f"  {lane_name}: {info['active']}/{info['max']} active")
 
 
 @run_app.command("wait")
@@ -274,8 +293,13 @@ def run_resume(run_id: str) -> None:
 
 
 @pack_app.command("install")
-def pack_install(source: str) -> None:
-    """Install a campaign pack from a path or git URL."""
+def pack_install(
+    source: str,
+    skip_verify: bool = typer.Option(False, "--skip-verify", help="Skip hash verification on install"),
+) -> None:
+    """Install a campaign pack from a path using PackInstaller."""
+    from openeinstein.skills.installer import PackInstaller
+
     if source.startswith("http://") or source.startswith("https://"):
         rprint(f"Remote install placeholder (manual clone required): {source}")
         return
@@ -284,13 +308,83 @@ def pack_install(source: str) -> None:
         raise typer.BadParameter(f"Pack source does not exist: {source_path}")
     if source_path.is_file():
         source_path = source_path.parent
-    if not (source_path / "campaign.yaml").exists():
-        raise typer.BadParameter("Pack source must contain campaign.yaml")
-    destination_root = Path("campaign-packs")
-    destination_root.mkdir(parents=True, exist_ok=True)
-    destination = destination_root / source_path.name
-    shutil.copytree(source_path, destination, dirs_exist_ok=True)
-    rprint(f"Installed campaign pack to {destination}")
+
+    managed = _managed_packs_root()
+    pins = _pins_path()
+    installer = PackInstaller(managed_root=managed, pins_path=pins)
+    result = installer.install(source_path, verify=not skip_verify)
+
+    if not result.success:
+        rprint(f"Install failed: {result.error}")
+        raise typer.Exit(code=1)
+
+    if result.findings:
+        rprint(f"Security findings ({len(result.findings)}):")
+        for finding in result.findings:
+            rprint(
+                f"  {finding.severity.upper()} {finding.rule_id} "
+                f"{finding.path}:{finding.line} {finding.message}"
+            )
+
+    rprint(f"Installed pack '{result.pack_name}' to {managed / result.pack_name}")
+
+
+@pack_app.command("verify")
+def pack_verify(path: Path = typer.Argument(..., help="Path to pack directory to verify")) -> None:
+    """Verify a pack's integrity against its pinned hash."""
+    from openeinstein.skills.installer import PackInstaller
+
+    pack_path = Path(path).resolve()
+    if not pack_path.exists():
+        raise typer.BadParameter(f"Pack path does not exist: {pack_path}")
+
+    manifest_path = pack_path / "manifest.json"
+    if not manifest_path.exists():
+        raise typer.BadParameter(f"No manifest.json found in {pack_path}")
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    pack_name = manifest.get("name", pack_path.name)
+
+    from openeinstein.security.core import MetadataPinStore
+
+    pin_store = MetadataPinStore(_pins_path())
+    current_hash = PackInstaller._compute_pack_hash(pack_path)
+
+    pins = pin_store._read()
+    if pack_name not in pins:
+        rprint(f"Pack '{pack_name}' is not pinned. Run `pack pin` first.")
+        raise typer.Exit(code=1)
+
+    if pin_store.verify(pack_name, current_hash):
+        rprint(f"PASS: Pack '{pack_name}' integrity verified.")
+    else:
+        rprint(f"FAIL: Pack '{pack_name}' hash mismatch — pack may have been tampered with.")
+        raise typer.Exit(code=1)
+
+
+@pack_app.command("pin")
+def pack_pin(path: Path = typer.Argument(..., help="Path to pack directory to pin")) -> None:
+    """Manually pin a pack's current hash."""
+    from openeinstein.skills.installer import PackInstaller
+
+    pack_path = Path(path).resolve()
+    if not pack_path.exists():
+        raise typer.BadParameter(f"Pack path does not exist: {pack_path}")
+
+    manifest_path = pack_path / "manifest.json"
+    if not manifest_path.exists():
+        raise typer.BadParameter(f"No manifest.json found in {pack_path}")
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    pack_name = manifest.get("name", pack_path.name)
+
+    from openeinstein.security.core import MetadataPinStore
+
+    pin_store = MetadataPinStore(_pins_path())
+    current_hash = PackInstaller._compute_pack_hash(pack_path)
+    pin_store.pin(pack_name, current_hash)
+
+    rprint(f"Pinned pack '{pack_name}' with hash {current_hash[:16]}...")
 
 
 @pack_app.command("list")
@@ -305,6 +399,38 @@ def pack_list(
         return
     for name, path in packs.items():
         rprint(f"{name}: {path}")
+
+
+# ── Skill commands ──
+
+
+@skill_app.command("list")
+def skill_list(
+    skills_root: Path = typer.Option(
+        Path("skills"), "--skills-root", help="Directory root containing skill directories"
+    ),
+    precedence: bool = typer.Option(False, "--precedence", help="Show source and version columns"),
+) -> None:
+    """List discovered skills, optionally with precedence info."""
+    registry = SkillRegistry([skills_root])
+    if precedence:
+        result = registry.list_with_precedence()
+        if not result:
+            rprint(f"No skills discovered under {skills_root}")
+            return
+        rprint(f"{'Name':<30} {'Version':<12} {'Source':<12} {'Path'}")
+        rprint("-" * 80)
+        for name, meta in sorted(result.items()):
+            version = meta.version or "-"
+            source = meta.source.value
+            rprint(f"{name:<30} {version:<12} {source:<12} {meta.path}")
+    else:
+        discovered = registry.discover_skills()
+        if not discovered:
+            rprint(f"No skills discovered under {skills_root}")
+            return
+        for name, meta in sorted(discovered.items()):
+            rprint(f"{name}: {meta.path}")
 
 
 @approvals_app.command("list")
@@ -513,19 +639,137 @@ def report_generate(
     db.close()
 
 
+# ── Webhook commands ──
+
+
+@webhook_app.command("list")
+def webhook_list(
+    config: Path = typer.Option(
+        Path("configs/webhooks.yaml"), "--config", help="Webhook config YAML path"
+    ),
+) -> None:
+    """List registered webhooks."""
+    from openeinstein.gateway.webhooks import load_webhook_config
+
+    cfg = load_webhook_config(config)
+    if not cfg.webhooks:
+        rprint("No webhooks configured.")
+        return
+    for wh in cfg.webhooks:
+        events = ", ".join(wh.events)
+        rprint(f"{wh.url}  events=[{events}]")
+
+
+@webhook_app.command("add")
+def webhook_add(
+    url: str = typer.Option(..., "--url", help="Webhook endpoint URL"),
+    events: str = typer.Option(
+        ..., "--events", help="Comma-separated event types to subscribe to"
+    ),
+    secret: str = typer.Option(..., "--secret", help="HMAC signing secret"),
+    config: Path = typer.Option(
+        Path("configs/webhooks.yaml"), "--config", help="Webhook config YAML path"
+    ),
+) -> None:
+    """Register a new outbound webhook."""
+    import yaml as _yaml  # type: ignore[import-untyped]
+
+    from openeinstein.gateway.webhooks import load_webhook_config
+
+    cfg = load_webhook_config(config)
+    event_list = [e.strip() for e in events.split(",") if e.strip()]
+    if not event_list:
+        rprint("No events specified.")
+        raise typer.Exit(1)
+    if any(wh.url == url for wh in cfg.webhooks):
+        rprint(f"Webhook already registered: {url}")
+        raise typer.Exit(1)
+    cfg.webhooks.append(
+        __import__("openeinstein.gateway.webhooks", fromlist=["WebhookRegistration"]).WebhookRegistration(
+            url=url, events=event_list, secret=secret,
+        )
+    )
+    config.parent.mkdir(parents=True, exist_ok=True)
+    config.write_text(
+        _yaml.dump({"webhooks": [wh.model_dump() for wh in cfg.webhooks]}, default_flow_style=False),
+        encoding="utf-8",
+    )
+    rprint(f"Added webhook: {url} -> events={event_list}")
+
+
+@webhook_app.command("remove")
+def webhook_remove(
+    url: str = typer.Option(..., "--url", help="Webhook endpoint URL to remove"),
+    config: Path = typer.Option(
+        Path("configs/webhooks.yaml"), "--config", help="Webhook config YAML path"
+    ),
+) -> None:
+    """Remove a registered webhook by URL."""
+    import yaml as _yaml  # type: ignore[import-untyped]
+
+    from openeinstein.gateway.webhooks import load_webhook_config
+
+    cfg = load_webhook_config(config)
+    before = len(cfg.webhooks)
+    cfg.webhooks = [wh for wh in cfg.webhooks if wh.url != url]
+    if len(cfg.webhooks) == before:
+        rprint(f"Webhook not found: {url}")
+        raise typer.Exit(1)
+    config.write_text(
+        _yaml.dump({"webhooks": [wh.model_dump() for wh in cfg.webhooks]}, default_flow_style=False),
+        encoding="utf-8",
+    )
+    rprint(f"Removed webhook: {url}")
+
+
+@webhook_app.command("test")
+def webhook_test(
+    url: str = typer.Option(..., "--url", help="Webhook URL to send test payload to"),
+    config: Path = typer.Option(
+        Path("configs/webhooks.yaml"), "--config", help="Webhook config YAML path"
+    ),
+) -> None:
+    """Send a test payload to a registered webhook."""
+    from openeinstein.gateway.webhooks import WebhookDispatcher, load_webhook_config
+
+    cfg = load_webhook_config(config)
+    matching = [wh for wh in cfg.webhooks if wh.url == url]
+    if not matching:
+        rprint(f"Webhook URL not found in config: {url}")
+        return
+
+    dispatcher = WebhookDispatcher.from_config(cfg)
+    dispatcher.dispatch("test", {"message": "OpenEinstein webhook test"}, blocking=True)
+    rprint(f"Test payload sent to {url}")
+
+
 def _db_path() -> Path:
     return Path(".openeinstein") / "openeinstein.db"
+
+
+def _managed_packs_root() -> Path:
+    return Path("campaign-packs") / "_managed"
+
+
+def _pins_path() -> Path:
+    return Path(".openeinstein") / "metadata-pins.json"
 
 
 def _approvals_store() -> ApprovalsStore:
     return ApprovalsStore(Path(".openeinstein") / "approvals.json")
 
 
-def _control_plane() -> FileBackedControlPlane:
-    return FileBackedControlPlane(Path(".openeinstein") / "control-plane")
+def _control_plane(
+    runtime_limits: RuntimeLimits | None = None,
+) -> ExecutorBackedControlPlane:
+    return ExecutorBackedControlPlane(
+        Path(".openeinstein") / "control-plane",
+        Path(".openeinstein") / "openeinstein.db",
+        runtime_limits=runtime_limits,
+    )
 
 
-def _resolve_run_id(control: FileBackedControlPlane, run_id: str) -> str:
+def _resolve_run_id(control: ExecutorBackedControlPlane, run_id: str) -> str:
     if run_id != "latest":
         return run_id
     latest = control.latest_run_id()

@@ -1643,3 +1643,102 @@ This ledger tracks integration contracts per §17.5 of the implementation plan.
 - IC-20: NL intent endpoint uses role-based router and is consumed by command palette in `src/openeinstein/gateway/api/intent.py` and `ui/src/App.nl-layout-mobile.test.tsx`.
 - IC-21: packaged UI assets included and served via default static dir; validated in `tests/integration/test_packaging_install.py` and `tests/integration/test_dashboard_app_integration.py`.
 - IC-22: no-orphan guard satisfied; each new API/route/component path above has runtime consumers and at least one integration/UI test consumer.
+
+## PR-CUTOVER-001: Production Runner Cutover Contract Baseline
+
+- Files Created:
+  - `docs/build-plans/production-runner-cutover.md`
+- Files Modified:
+  - `docs/build-plans/integration-contract-ledger.md`
+- Interfaces Exposed:
+  - Contract namespace: `IC-PR-01` through `IC-PR-12`.
+  - Requirement mapping namespace: `PR-OBJ-*`, `PR-PACK-*`, `PR-SUBJ-*`.
+- Database Changes: none.
+- Config Changes:
+  - Defines production profile policy (`@pytest.mark.production` + enforcement script contract).
+- Depends On: Implementation Plan §§1.2, 15, 17, 23.
+- Depended On By: all production runner work packages (WP-1 .. WP-10).
+- Verification Commands:
+  - `rg -n "IC-PR-0[1-9]|IC-PR-1[0-2]" docs/build-plans/production-runner-cutover.md`
+  - `rg -n "PR-OBJ-|PR-PACK-|PR-SUBJ-" docs/build-plans/production-runner-cutover.md`
+- Consumption Proof:
+  - Runtime path: cutover implementation and tests reference this matrix as source of truth.
+  - Integration test path: `tests/production/*` maps directly to matrix rows.
+
+## PR-CUTOVER-002: Runtime Executor + Persistence + Replay Contracts
+
+- Files Created:
+  - `src/openeinstein/campaigns/executor.py`
+  - `src/openeinstein/evals/subjective.py`
+  - `src/openeinstein/routing/provider_qualification.py`
+  - `tests/production/test_runner_lifecycle_contract.py`
+  - `tests/production/test_full_agent_loop_e2e.py`
+  - `tests/production/test_crash_resume_replay.py`
+  - `tests/production/test_policy_enforcement_end_to_end.py`
+  - `tests/production/test_campaign_pack_extensibility.py`
+  - `tests/production/test_subjective_intent_evals.py`
+- Files Modified:
+  - `src/openeinstein/persistence/db.py`
+  - `src/openeinstein/persistence/__init__.py`
+  - `src/openeinstein/campaigns/__init__.py`
+  - `src/openeinstein/reports/generator.py`
+  - `src/openeinstein/evals/__init__.py`
+  - `src/openeinstein/routing/__init__.py`
+  - `pyproject.toml`
+- Interfaces Exposed:
+  - `CampaignExecutor` runtime APIs (`start_campaign`, `resume_campaign`, `pause_campaign`, `stop_campaign`, `get_run`, `get_steps`, `get_events`, `wait_for_status`, `execute_next_step`).
+  - Runtime models: `RuntimeLimits`, `ExecutorRun`, `ExecutorStep`, `ExecutorEvent`.
+  - Persistence contracts: `runtime_runs`, `runtime_steps`, `runtime_events`, `runtime_usage` table CRUD.
+  - Subjective rubric API: `evaluate_subjective_intent`.
+  - Live-provider qualification API: `LiveProviderQualifier.qualify(...)`.
+- Database Changes:
+  - Added runtime tables and typed accessors for run lifecycle, durable step records, monotonic event sequence/replay cursor, and usage/cost accounting.
+- Config Changes:
+  - Added pytest production marker registration.
+- Depends On: PR-CUTOVER-001.
+- Depended On By: PR-CUTOVER-003 API/CLI/UI cutover and release audit.
+- Verification Commands:
+  - `.venv/bin/pytest tests/production -q`
+  - `.venv/bin/pytest tests/unit/test_report_generation.py -q`
+- Consumption Proof:
+  - Runtime path: CLI/API run-start now has an executor-backed implementation path with deterministic sandwich execution and persisted replay events.
+  - Test path: `tests/production/*` validates lifecycle, full loop, crash resume, policy behavior, pack extensibility, subjective rubric, and quickstart flow.
+
+## PR-CUTOVER-003: API v2 + ToolBus Runtime Initialization + Compatibility Adapter
+
+- Files Created:
+  - `src/openeinstein/gateway/runtime_control.py`
+  - `src/openeinstein/tools/runtime.py`
+  - `tests/integration/test_dashboard_api_v2_integration.py`
+  - `scripts/verify-production-profile.py`
+- Files Modified:
+  - `src/openeinstein/cli/main.py`
+  - `src/openeinstein/gateway/web/config.py`
+  - `src/openeinstein/gateway/web/app.py`
+  - `src/openeinstein/gateway/__init__.py`
+  - `src/openeinstein/gateway/control_plane.py`
+  - `src/openeinstein/gateway/api/runs.py`
+  - `src/openeinstein/gateway/api/artifacts.py`
+  - `src/openeinstein/gateway/api/system.py`
+  - `src/openeinstein/gateway/api/intent.py`
+  - `src/openeinstein/gateway/api/tools.py`
+  - `src/openeinstein/gateway/ws/handler.py`
+  - `src/openeinstein/tools/__init__.py`
+- Interfaces Exposed:
+  - Compatibility adapter: `ExecutorBackedControlPlane`.
+  - Runtime ToolBus bootstrap: `initialize_tool_bus_from_config(...)` + init report models.
+  - API versioned cutover: `/api/v1/*` and `/api/v2/*` concurrently served with protocol-specific `/version` response.
+  - Production profile policy script enforcing skip/xfail rules.
+- Database Changes: none beyond PR-CUTOVER-002.
+- Config Changes:
+  - Runtime ToolBus loader now falls back to core server defaults when config file is absent.
+- Depends On: PR-CUTOVER-002.
+- Depended On By: release audit and production checklist execution.
+- Verification Commands:
+  - `.venv/bin/pytest tests/integration/test_dashboard_api_v2_integration.py -q`
+  - `.venv/bin/pytest tests/integration/test_control_plane_cli_integration.py -q`
+  - `.venv/bin/pytest tests/integration/test_dashboard_ws_integration.py -q`
+  - `scripts/verify-production-profile.py`
+- Consumption Proof:
+  - Runtime path: default dashboard/CLI control-plane resolution now uses executor-backed runtime control with ToolBus initialization and durable replay sync.
+  - Integration path: v2 auth/health/runs contract verified and legacy v1 flows remain operational.

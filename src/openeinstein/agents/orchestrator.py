@@ -7,6 +7,8 @@ from typing import Any, Protocol
 from pydantic import BaseModel, Field
 
 from openeinstein.agents.base import OpenEinsteinAgent
+from openeinstein.agents.compaction import BlockType, CompactionEngine, ContentBlock
+from openeinstein.agents.context_pins import ContextPinRegistry
 
 
 class DelegatedTask(BaseModel):
@@ -58,11 +60,21 @@ class AgentOrchestrator:
         scheduler: AdaptiveScheduler | None = None,
         invariants: list[str] | None = None,
         max_compacted_chars: int = 1200,
+        compaction_engine: CompactionEngine | None = None,
+        pin_registry: ContextPinRegistry | None = None,
+        pin_run_id: str | None = None,
     ) -> None:
         self._subagents = subagents
         self._scheduler = scheduler or DefaultAdaptiveScheduler()
         self._invariants = invariants or []
         self._max_compacted_chars = max_compacted_chars
+        self._compaction_engine = compaction_engine
+        self._pin_registry = pin_registry
+
+        # Auto-pin invariants at construction if registry and run_id provided
+        if pin_registry is not None and pin_run_id is not None:
+            for inv in self._invariants:
+                pin_registry.pin(run_id=pin_run_id, content=inv, reason="invariant")
 
     def execute(
         self,
@@ -117,6 +129,28 @@ class AgentOrchestrator:
         )
 
     def compact_with_invariants(self, text: str, invariants: list[str]) -> str:
+        # Delegate to CompactionEngine when available
+        if self._compaction_engine is not None:
+            blocks = [
+                ContentBlock(
+                    content=text,
+                    block_type=BlockType.recent,
+                    token_count=len(text.split()),
+                )
+            ]
+            # Add invariants as pinned blocks
+            for inv in invariants:
+                blocks.append(
+                    ContentBlock(
+                        content=inv,
+                        block_type=BlockType.pinned,
+                        token_count=len(inv.split()),
+                    )
+                )
+            result = self._compaction_engine.compact(blocks, budget=self._max_compacted_chars)
+            return "\n".join(b.content for b in result)
+
+        # Legacy fallback when no engine is configured
         if len(text) <= self._max_compacted_chars and all(token in text for token in invariants):
             return text
 

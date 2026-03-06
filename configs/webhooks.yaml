@@ -1,0 +1,14 @@
+# Outbound Webhook Configuration
+# Each webhook receives HTTP POST notifications for subscribed event types.
+# Events are signed with HMAC-SHA256 using the per-webhook secret.
+#
+# Available event types:
+#   before_tool_call, after_tool_call, campaign_state_transition,
+#   before_run_start, after_run_end,
+#   before_compaction, after_compaction,
+#   candidate_generated, gate_passed, gate_failed, budget_warning
+
+webhooks: []
+  # - url: https://example.com/openeinstein/webhook
+  #   events: [candidate_generated, gate_passed, gate_failed]
+  #   secret: change-me-to-a-strong-secret

@@ -1,0 +1,41 @@
+# Tool Sandbox Profiles
+# Controls per-tool permissions enforced by the ToolSandboxHook.
+#
+# Presets define reusable permission sets with optional inheritance.
+# Profiles match tools by name (exact or glob) and inherit from presets.
+# Merge logic: deny-wins for booleans, stricter-wins for numeric limits.
+
+presets:
+  minimal:
+    allow_network: false
+    allow_fs_write: false
+    allow_shell: false
+
+  research:
+    inherits: minimal
+    allow_network: true
+
+  full:
+    allow_network: true
+    allow_fs_write: true
+    allow_shell: true
+
+profiles:
+  - tool_name_pattern: "arxiv_*"
+    inherits: research
+    max_tokens_per_call: 8000
+    max_calls_per_run: 20
+
+  - tool_name_pattern: "semantic_scholar_*"
+    inherits: research
+    max_tokens_per_call: 8000
+    max_calls_per_run: 20
+
+  - tool_name_pattern: "shell_exec"
+    inherits: full
+    max_calls_per_run: 10
+
+  - tool_name_pattern: "file_write"
+    inherits: minimal
+    allow_fs_write: true
+    max_calls_per_run: 50

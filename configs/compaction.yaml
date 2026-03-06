@@ -1,0 +1,4 @@
+# Compaction engine defaults
+recent_turns_keep: 5
+summary_model_role: fast
+budget_trigger_pct: 70

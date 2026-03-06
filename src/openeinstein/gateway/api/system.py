@@ -22,7 +22,12 @@ class EmailTestRequest(BaseModel):
     email: str
 
 
-def build_system_router(config: DashboardConfig, auth_service: DashboardAuthService) -> APIRouter:
+def build_system_router(
+    config: DashboardConfig,
+    auth_service: DashboardAuthService,
+    *,
+    protocol_version: str = "v1",
+) -> APIRouter:
     router = APIRouter(tags=["system"])
 
     @router.get("/health")
@@ -31,7 +36,7 @@ def build_system_router(config: DashboardConfig, auth_service: DashboardAuthServ
 
     @router.get("/version")
     def version() -> dict[str, str]:
-        return {"gateway": __version__, "ui": "control-ui", "protocol": "v1"}
+        return {"gateway": __version__, "ui": "control-ui", "protocol": protocol_version}
 
     @router.get("/system")
     def system_summary() -> dict[str, object]:

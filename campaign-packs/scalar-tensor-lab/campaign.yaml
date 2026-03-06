@@ -1,0 +1,13 @@
+campaign:
+  name: "Scalar-Tensor Lab Starter"
+  version: "0.1.0"
+  description: "Starter campaign for scalar-tensor gravity model sweeps."
+  search_space:
+    generator_skill: "scalar-tensor-search"
+  gate_pipeline:
+    - name: "stability"
+      skill: "stability-analysis"
+      cas_requirements: ["tensor_algebra"]
+      timeout_seconds: 45
+  dependencies:
+    tools: ["sympy", "scanner"]

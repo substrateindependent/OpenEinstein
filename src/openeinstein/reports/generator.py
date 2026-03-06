@@ -23,7 +23,10 @@ class CampaignReport(BaseModel):
     summary: str
     candidates: list[ReportCandidate] = Field(default_factory=list)
     failures: list[FailureRecord] = Field(default_factory=list)
+    failure_map: dict[str, int] = Field(default_factory=dict)
     recommendations: list[str] = Field(default_factory=list)
+    next_steps: list[str] = Field(default_factory=list)
+    null_result: bool = False
     open_questions: list[str] = Field(default_factory=list)
 
 
@@ -46,12 +49,25 @@ class CampaignReportGenerator:
             recommendations = [report_candidates[0].candidate_key]
 
         failure_types = Counter(item.failure_type for item in failures)
+        failure_map = dict(failure_types)
         open_questions = [
             f"How should we reduce {failure_type} failures?"
             for failure_type, _count in failure_types.most_common(3)
         ]
         if not open_questions:
             open_questions = ["No major open issues detected from current failure logs."]
+
+        null_result = not any(row.status == "pass" for row in report_candidates)
+        next_steps = [
+            "Review top-ranked candidates with full derivation trace links.",
+            "Re-run excluded regions with adjusted gate thresholds.",
+            "Prepare collaborator handoff note with candidate and failure maps.",
+        ]
+        if null_result:
+            next_steps.insert(
+                0,
+                "Null result observed: prioritize failure-map triage and broaden search-space assumptions.",
+            )
 
         summary = (
             f"Run {run_id} evaluated {len(candidates)} candidates with "
@@ -62,7 +78,10 @@ class CampaignReportGenerator:
             summary=summary,
             candidates=report_candidates,
             failures=failures,
+            failure_map=failure_map,
             recommendations=recommendations,
+            next_steps=next_steps,
+            null_result=null_result,
             open_questions=open_questions,
         )
 
@@ -104,6 +123,18 @@ class CampaignReportGenerator:
         lines.extend(
             [
                 "",
+                "## Failure Map",
+            ]
+        )
+        if report.failure_map:
+            for failure_type, count in sorted(report.failure_map.items()):
+                lines.append(f"- {failure_type}: {count}")
+        else:
+            lines.append("- No classified failure regions.")
+
+        lines.extend(
+            [
+                "",
                 "## Recommended Candidates",
             ]
         )
@@ -111,6 +142,17 @@ class CampaignReportGenerator:
             lines.append(f"- {key}")
         if not report.recommendations:
             lines.append("- No recommendation available.")
+        if report.null_result:
+            lines.append("- Documented null-result outcome with constrained search region.")
+
+        lines.extend(
+            [
+                "",
+                "## Next Steps",
+            ]
+        )
+        for step in report.next_steps:
+            lines.append(f"- {step}")
 
         lines.extend(
             [

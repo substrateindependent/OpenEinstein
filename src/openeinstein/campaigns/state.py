@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import threading
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -48,9 +49,15 @@ _ALLOWED_TRANSITIONS: dict[CampaignRunState, set[CampaignRunState]] = {
 class CampaignStateMachine:
     """State manager for campaign execution lifecycle."""
 
-    def __init__(self, db: CampaignDB, control_plane: ControlPlane) -> None:
+    def __init__(
+        self,
+        db: CampaignDB,
+        control_plane: ControlPlane,
+        concurrent_tracker: ConcurrentStepTracker | None = None,
+    ) -> None:
         self._db = db
         self._control = control_plane
+        self.concurrent_tracker = concurrent_tracker
 
     def initialize_run(self, run_id: str | None = None, metadata: dict[str, Any] | None = None) -> str:
         started_run_id = self._control.start_run(run_id=run_id)
@@ -155,3 +162,103 @@ class CampaignStateMachine:
             idempotency_key=idempotency_key,
             created=True,
         )
+
+
+# ── Default allowed concurrent phase pairs ──
+
+_DEFAULT_ALLOWED_CONCURRENT: frozenset[frozenset[str]] = frozenset(
+    {
+        frozenset({"literature", "planning"}),
+        frozenset({"literature", "generating"}),
+        frozenset({"literature", "gating"}),
+        frozenset({"literature", "verifying"}),
+        frozenset({"generating", "gating"}),
+    }
+)
+
+
+class ConcurrentStepTracker:
+    """Tracks active steps per lane and enforces phase concurrency rules.
+
+    Rules:
+    - Two steps with the **same** phase are never allowed concurrently.
+    - Two steps with **different** phases are allowed only when their pair
+      appears in *allowed_concurrent_transitions*.
+    """
+
+    allowed_concurrent_transitions: frozenset[frozenset[str]]
+
+    def __init__(
+        self,
+        allowed_concurrent: frozenset[frozenset[str]] | None = None,
+    ) -> None:
+        self.allowed_concurrent_transitions = (
+            allowed_concurrent if allowed_concurrent is not None else _DEFAULT_ALLOWED_CONCURRENT
+        )
+        self._active: dict[str, set[str]] = {}  # lane_name → set of step_ids
+        self._phase_map: dict[str, str] = {}  # step_id → phase
+        self._lock = threading.Lock()
+
+    # ── Public API ──
+
+    def register_step(self, lane_name: str, step_id: str, phase: str) -> None:
+        """Register a step as active. Raises ValueError on rule violation."""
+        with self._lock:
+            self._check_concurrent_rules(phase)
+            self._active.setdefault(lane_name, set()).add(step_id)
+            self._phase_map[step_id] = phase
+
+    def complete_step(self, lane_name: str, step_id: str) -> None:
+        """Remove a completed step from tracking. No-op if not found."""
+        with self._lock:
+            lane_steps = self._active.get(lane_name)
+            if lane_steps is not None:
+                lane_steps.discard(step_id)
+                if not lane_steps:
+                    del self._active[lane_name]
+            self._phase_map.pop(step_id, None)
+
+    @property
+    def lane_status(self) -> dict[str, dict[str, Any]]:
+        """Per-lane active step counts and step IDs."""
+        with self._lock:
+            result: dict[str, dict[str, Any]] = {}
+            for lane_name, step_ids in self._active.items():
+                result[lane_name] = {
+                    "active": len(step_ids),
+                    "step_ids": set(step_ids),
+                }
+            return result
+
+    def can_run_phase(self, phase: str) -> bool:
+        """Check whether *phase* can be registered without violating rules."""
+        with self._lock:
+            try:
+                self._check_concurrent_rules(phase)
+                return True
+            except ValueError:
+                return False
+
+    # ── Internal ──
+
+    def _check_concurrent_rules(self, new_phase: str) -> None:
+        """Raise ValueError if *new_phase* conflicts with active phases."""
+        active_phases = set(self._phase_map.values())
+        if not active_phases:
+            return
+
+        # Same-phase duplication is always rejected
+        if new_phase in active_phases:
+            raise ValueError(
+                f"Phase '{new_phase}' is already active; "
+                f"concurrent duplicate phases are not allowed"
+            )
+
+        # Check every active phase against the new phase
+        for existing in active_phases:
+            pair = frozenset({existing, new_phase})
+            if pair not in self.allowed_concurrent_transitions:
+                raise ValueError(
+                    f"Phases '{existing}' and '{new_phase}' cannot run concurrent; "
+                    f"pair not in allowed_concurrent_transitions"
+                )

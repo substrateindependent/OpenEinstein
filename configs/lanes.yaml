@@ -1,0 +1,16 @@
+# Default lane configuration for concurrent campaign step dispatch.
+# Each lane controls how many steps of a given type may run simultaneously.
+
+lanes:
+  main:
+    max_concurrent: 4
+    queue_mode: collect
+  subagent:
+    max_concurrent: 8
+    queue_mode: collect
+  literature:
+    max_concurrent: 2
+    queue_mode: followup
+  gating:
+    max_concurrent: 2
+    queue_mode: collect

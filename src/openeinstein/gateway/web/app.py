@@ -95,20 +95,29 @@ def create_dashboard_app(config: DashboardConfig, deps: DashboardDeps) -> FastAP
     event_hub = EventHub()
     auth_dependency = auth_dependency_factory(auth_service)
 
-    api_router = APIRouter(prefix=_join_base_path(config.base_path, "/api/v1"))
-    api_router.include_router(build_system_router(config, auth_service))
-    api_router.include_router(build_auth_router(auth_service))
+    def register_api(version: str) -> None:
+        api_router = APIRouter(prefix=_join_base_path(config.base_path, f"/api/{version}"))
+        api_router.include_router(
+            build_system_router(config, auth_service, protocol_version=version)
+        )
+        api_router.include_router(build_auth_router(auth_service))
 
-    protected_router = APIRouter(dependencies=[Depends(auth_dependency)])
-    protected_router.include_router(build_runs_router(deps, event_hub))
-    protected_router.include_router(build_approvals_router(deps))
-    protected_router.include_router(build_artifacts_router(deps))
-    protected_router.include_router(build_tools_router(deps))
-    protected_router.include_router(build_config_router(config))
-    protected_router.include_router(build_intent_router(deps))
-    api_router.include_router(protected_router)
+        protected_router = APIRouter(dependencies=[Depends(auth_dependency)])
+        protected_router.include_router(
+            build_runs_router(deps, event_hub, api_prefix=f"/api/{version}")
+        )
+        protected_router.include_router(build_approvals_router(deps))
+        protected_router.include_router(
+            build_artifacts_router(deps, api_prefix=f"/api/{version}")
+        )
+        protected_router.include_router(build_tools_router(deps))
+        protected_router.include_router(build_config_router(config))
+        protected_router.include_router(build_intent_router(deps))
+        api_router.include_router(protected_router)
+        app.include_router(api_router)
 
-    app.include_router(api_router)
+    register_api("v1")
+    register_api("v2")
 
     register_ws_routes(
         app,

@@ -17,6 +17,9 @@ class PolicyInvariants(BaseModel):
     max_cas_timeout_minutes: int = Field(ge=1)
     forbidden_operations: list[str] = Field(default_factory=list)
     require_verification_after_gates: bool
+    max_total_tokens_per_session: int | None = Field(default=None)
+    max_total_cost_per_session_usd: float | None = Field(default=None)
+    circuit_breaker_consecutive_failures: int = Field(default=5, ge=1)
 
 
 class PolicyConfig(BaseModel):

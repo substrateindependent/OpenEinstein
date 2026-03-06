@@ -46,7 +46,12 @@ class ControlPlane(Protocol):
 
     def issue_run_id(self) -> str: ...
 
-    def start_run(self, run_id: str | None = None) -> str: ...
+    def start_run(
+        self,
+        run_id: str | None = None,
+        campaign_path: str | Path | None = None,
+        parameters: dict[str, Any] | None = None,
+    ) -> str: ...
 
     def latest_run_id(self) -> str | None: ...
 
@@ -132,7 +137,12 @@ class FileBackedControlPlane:
     def get_run(self, run_id: str) -> RunRecord:
         return self._load_run_record(run_id)
 
-    def start_run(self, run_id: str | None = None) -> str:
+    def start_run(
+        self,
+        run_id: str | None = None,
+        campaign_path: str | Path | None = None,  # noqa: ARG002
+        parameters: dict[str, Any] | None = None,  # noqa: ARG002
+    ) -> str:
         created_run_id = run_id or self.issue_run_id()
         now = self._now_iso()
         record = RunRecord(

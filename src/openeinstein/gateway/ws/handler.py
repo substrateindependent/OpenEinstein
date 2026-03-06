@@ -9,8 +9,12 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from openeinstein.gateway.auth import DashboardAuthService
 from openeinstein.gateway.events import EventHub
+from openeinstein.gateway.idempotency import IdempotencyCache
 from openeinstein.gateway.web.config import DashboardConfig, DashboardDeps
 from openeinstein.gateway.ws.protocol import WSClientMessage
+
+# Module-level idempotency cache (shared across WS connections)
+_idempotency_cache = IdempotencyCache()
 
 
 def _normalize_base_path(base_path: str) -> str:
@@ -58,16 +62,27 @@ def register_ws_routes(
             await websocket.close(code=4401)
             return
 
+        # Track client identity from connect frame (Story 7.1 / 7.2)
+        session_state: dict[str, str | None] = {
+            "client_id": initial.client_id,
+            "client_version": initial.client_version,
+        }
+
         await websocket.send_json(
             _ws_payload(
                 "connected",
                 {
                     "authenticated": True,
                     "capabilities": ["runs", "approvals", "artifacts", "tools"],
+                    "client_id": session_state["client_id"],
                 },
             )
         )
-        event_hub.publish("connected", {"authenticated": True})
+        event_hub.publish("connected", {
+            "authenticated": True,
+            "client_id": session_state["client_id"],
+            "client_version": session_state["client_version"],
+        })
 
         control = deps.resolved_control_plane()
         verbosity = "normal"
@@ -102,6 +117,17 @@ def register_ws_routes(
                     continue
 
                 if message.type == "approval_decision":
+                    # Idempotency deduplication for approval decisions
+                    if message.idempotency_key is not None:
+                        cached = _idempotency_cache.check_and_store(
+                            message.idempotency_key,
+                            {"type": "approval_resolved", "status": "recorded", **message.payload},
+                        )
+                        if cached is not None:
+                            await websocket.send_json(
+                                _ws_payload("approval_resolved", cached.result)
+                            )
+                            continue
                     await websocket.send_json(
                         _ws_payload("approval_resolved", {"status": "recorded", **message.payload})
                     )
@@ -111,7 +137,12 @@ def register_ws_routes(
                     command = str(message.payload.get("command", "")).lower()
                     run_id = message.payload.get("run_id")
                     if command == "start":
-                        run_id = control.start_run()
+                        try:
+                            run_id = control.start_run(
+                                campaign_path="campaign-packs/modified-gravity-action-search/campaign.yaml"
+                            )
+                        except TypeError:
+                            run_id = control.start_run()
                     elif run_id is None:
                         run_id = control.latest_run_id()
                     if not run_id:
@@ -126,15 +157,19 @@ def register_ws_routes(
                     elif command == "stop":
                         control.stop_run(run_id, reason="stopped from websocket")
 
-                    await websocket.send_json(
-                        _ws_payload(
-                            "run_state",
-                            {
-                                "run_id": run_id,
-                                "status": control.get_status(run_id),
-                                "verbosity": verbosity,
-                            },
+                    status = "running" if command == "start" else control.get_status(run_id)
+                    run_state_payload = {
+                        "run_id": run_id,
+                        "status": status,
+                        "verbosity": verbosity,
+                    }
+                    # Idempotency: store result for potential future duplicate
+                    if message.idempotency_key is not None:
+                        _idempotency_cache.check_and_store(
+                            message.idempotency_key, run_state_payload,
                         )
+                    await websocket.send_json(
+                        _ws_payload("run_state", run_state_payload)
                     )
                     continue
 

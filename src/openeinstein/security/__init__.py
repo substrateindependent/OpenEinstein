@@ -16,8 +16,12 @@ from openeinstein.security.core import (
     SecretsProvider,
     SecureToolGateway,
     SecurityScanner,
+    ToolProfileRegistry,
     ToolSandboxPolicy,
+    ToolSandboxProfile,
 )
+from openeinstein.security.sandbox import ScopedApprovalsStore, SessionSandbox
+from openeinstein.security.signing import PackSigner
 
 __all__ = [
     "ApprovalDecision",
@@ -27,13 +31,18 @@ __all__ = [
     "EnvFileSecretsProvider",
     "KeyringSecretsProvider",
     "MetadataPinStore",
+    "PackSigner",
     "PolicyEngine",
     "PolicyEnforcementHook",
     "PolicyViolationError",
     "ScanFinding",
+    "ScopedApprovalsStore",
     "SecretRedactor",
     "SecretsProvider",
     "SecureToolGateway",
     "SecurityScanner",
+    "SessionSandbox",
+    "ToolProfileRegistry",
     "ToolSandboxPolicy",
+    "ToolSandboxProfile",
 ]

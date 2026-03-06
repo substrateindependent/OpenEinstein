@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PackManifest",
+  "description": "Schema for OpenEinstein campaign pack manifests.",
+  "type": "object",
+  "required": ["name", "version", "author", "license", "sha256"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique pack identifier."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+",
+      "description": "Semantic version string."
+    },
+    "author": {
+      "type": "string",
+      "description": "Pack author or organization."
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license identifier."
+    },
+    "sha256": {
+      "type": "string",
+      "description": "SHA-256 hash of the pack contents."
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable pack description."
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "List of required dependency pack names."
+    },
+    "min_platform_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+",
+      "description": "Minimum OpenEinstein platform version required."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Categorization tags."
+    }
+  },
+  "additionalProperties": false
+}

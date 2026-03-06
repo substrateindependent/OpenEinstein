@@ -11,7 +11,11 @@ from fastapi.responses import FileResponse
 from openeinstein.gateway.web.config import DashboardDeps
 
 
-def build_artifacts_router(deps: DashboardDeps) -> APIRouter:
+def build_artifacts_router(
+    deps: DashboardDeps,
+    *,
+    api_prefix: str = "/api/v1",
+) -> APIRouter:
     router = APIRouter(tags=["artifacts"])
     control = deps.resolved_control_plane()
 
@@ -48,15 +52,15 @@ def build_artifacts_router(deps: DashboardDeps) -> APIRouter:
             return {
                 "artifact_id": artifact_id,
                 "mode": "image",
-                "preview": f"/api/v1/artifacts/{artifact_id}/download",
-                "download_url": f"/api/v1/artifacts/{artifact_id}/download",
+                "preview": f"{api_prefix}/artifacts/{artifact_id}/download",
+                "download_url": f"{api_prefix}/artifacts/{artifact_id}/download",
             }
         if suffix == ".pdf":
             return {
                 "artifact_id": artifact_id,
                 "mode": "pdf",
-                "preview": f"/api/v1/artifacts/{artifact_id}/download",
-                "download_url": f"/api/v1/artifacts/{artifact_id}/download",
+                "preview": f"{api_prefix}/artifacts/{artifact_id}/download",
+                "download_url": f"{api_prefix}/artifacts/{artifact_id}/download",
             }
 
         content = path.read_text(encoding="utf-8", errors="replace")

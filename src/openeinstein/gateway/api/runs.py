@@ -26,7 +26,12 @@ class RunTagsRequest(BaseModel):
     tags: list[str]
 
 
-def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
+def build_runs_router(
+    deps: DashboardDeps,
+    event_hub: EventHub,
+    *,
+    api_prefix: str = "/api/v1",
+) -> APIRouter:
     router = APIRouter(prefix="/runs", tags=["runs"])
     control = deps.resolved_control_plane()
     tags_path = Path(".openeinstein") / "run-tags.json"
@@ -41,12 +46,17 @@ def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
         tags_path.write_text(json.dumps(tags, indent=2), encoding="utf-8")
 
     @router.get("/compare")
-    def compare_runs(run_ids: str) -> dict[str, list[dict[str, Any]]]:
+    def compare_runs(run_ids: str) -> dict[str, Any]:
         requested = [item.strip() for item in run_ids.split(",") if item.strip()]
         tag_map = load_tags()
         compared: list[dict[str, Any]] = []
+        missing: list[str] = []
         for run_id in requested:
-            record = control.get_run(run_id)
+            try:
+                record = control.get_run(run_id)
+            except KeyError:
+                missing.append(run_id)
+                continue
             estimated_cost = 0.0
             for event in control.get_events(run_id):
                 estimated_cost = float(event.payload.get("estimated_cost_usd", estimated_cost))
@@ -65,7 +75,7 @@ def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
                     "tags": tag_map.get(record.run_id, []),
                 }
             )
-        return {"runs": compared}
+        return {"runs": compared, "missing_run_ids": missing}
 
     @router.get("")
     def list_runs() -> dict[str, Any]:
@@ -73,9 +83,19 @@ def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
 
     @router.post("")
     def start_run(payload: StartRunRequest) -> dict[str, Any]:
-        run_id = control.start_run()
-        if payload.campaign_path:
-            control.emit_event(run_id, "campaign_path_set", {"campaign_path": payload.campaign_path})
+        try:
+            run_id = control.start_run(
+                campaign_path=payload.campaign_path,
+                parameters=payload.parameters,
+            )
+        except TypeError:
+            run_id = control.start_run()
+            if payload.campaign_path:
+                control.emit_event(
+                    run_id,
+                    "campaign_path_set",
+                    {"campaign_path": payload.campaign_path},
+                )
         event_hub.publish("run_state", {"run_id": run_id, "status": "running"})
         return {"run_id": run_id, "status": control.get_status(run_id)}
 
@@ -97,26 +117,38 @@ def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
 
     @router.post("/{run_id}/pause")
     def pause_run(run_id: str) -> dict[str, Any]:
-        control.stop_run(run_id, reason="paused")
+        try:
+            control.stop_run(run_id, reason="paused")
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
         event_hub.publish("run_state", {"run_id": run_id, "status": "stopped"})
         return {"run_id": run_id, "status": control.get_status(run_id)}
 
     @router.post("/{run_id}/resume")
     def resume_run(run_id: str) -> dict[str, Any]:
-        control.resume_run(run_id)
+        try:
+            control.resume_run(run_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
         event_hub.publish("run_state", {"run_id": run_id, "status": "running"})
         return {"run_id": run_id, "status": control.get_status(run_id)}
 
     @router.post("/{run_id}/stop")
     def stop_run(run_id: str) -> dict[str, Any]:
-        control.stop_run(run_id, reason="stopped")
+        try:
+            control.stop_run(run_id, reason="stopped")
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
         event_hub.publish("run_state", {"run_id": run_id, "status": "stopped"})
         return {"run_id": run_id, "status": control.get_status(run_id)}
 
     @router.post("/{run_id}/fork")
     def fork_run(run_id: str, payload: ForkRunRequest) -> dict[str, Any]:
         control.get_run(run_id)
-        forked_run_id = control.start_run()
+        try:
+            forked_run_id = control.start_run()
+        except TypeError:
+            forked_run_id = control.start_run()  # pragma: no cover
         control.emit_event(
             forked_run_id,
             "forked_from",
@@ -161,6 +193,9 @@ def build_runs_router(deps: DashboardDeps, event_hub: EventHub) -> APIRouter:
         export_file.write_bytes(b"")
         control.attach_artifact(run_id, "Paper Pack", export_file)
         event_hub.publish("run_event", {"run_id": run_id, "event": "paper_pack_exported"})
-        return {"run_id": run_id, "download_url": f"/api/v1/artifacts/{export_file.name}/download"}
+        return {
+            "run_id": run_id,
+            "download_url": f"{api_prefix}/artifacts/{export_file.name}/download",
+        }
 
     return router

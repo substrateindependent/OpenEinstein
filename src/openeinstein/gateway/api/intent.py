@@ -49,7 +49,12 @@ def build_intent_router(deps: DashboardDeps) -> APIRouter:
         control = deps.resolved_control_plane()
 
         if re.search(r"\b(start|launch)\s+run\b", command, flags=re.IGNORECASE):
-            run_id = control.start_run()
+            try:
+                run_id = control.start_run(
+                    campaign_path="campaign-packs/modified-gravity-action-search/campaign.yaml"
+                )
+            except TypeError:
+                run_id = control.start_run()
             return {
                 "action": "start_run",
                 "route": "/",

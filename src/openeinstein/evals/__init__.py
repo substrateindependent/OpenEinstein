@@ -8,6 +8,7 @@ from openeinstein.evals.models import (
     EvalSuiteDocument,
 )
 from openeinstein.evals.runner import EvalRunner, discover_eval_suites
+from openeinstein.evals.subjective import SubjectiveIntentRubric, evaluate_subjective_intent
 
 __all__ = [
     "EvalCase",
@@ -16,5 +17,7 @@ __all__ = [
     "EvalRunner",
     "EvalSuite",
     "EvalSuiteDocument",
+    "SubjectiveIntentRubric",
     "discover_eval_suites",
+    "evaluate_subjective_intent",
 ]

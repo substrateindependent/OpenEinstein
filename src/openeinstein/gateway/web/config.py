@@ -7,7 +7,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from openeinstein.gateway.control_plane import ControlPlane, FileBackedControlPlane
+from openeinstein.gateway.control_plane import ControlPlane
+from openeinstein.gateway.runtime_control import ExecutorBackedControlPlane
 from openeinstein.persistence import CampaignDB
 from openeinstein.routing import ModelRouter, load_routing_config
 from openeinstein.routing.models import ModelConfig, RoleConfig, RoutingConfig, RoutingRoles, RoutingRoot
@@ -80,7 +81,9 @@ class DashboardDeps:
 
     def resolved_control_plane(self) -> ControlPlane:
         if self.control_plane is None:
-            self.control_plane = FileBackedControlPlane()
+            self.control_plane = ExecutorBackedControlPlane()
+        if self.tool_bus is None and isinstance(self.control_plane, ExecutorBackedControlPlane):
+            self.tool_bus = self.control_plane.tool_bus
         return self.control_plane
 
     def resolved_model_router(self) -> ModelRouter:

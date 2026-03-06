@@ -31,6 +31,8 @@ class CampaignDefinition(BaseModel):
     search_space: SearchSpaceConfig
     gate_pipeline: list[GateConfig] = Field(default_factory=list)
     dependencies: CampaignDependencies = Field(default_factory=CampaignDependencies)
+    harness_type: str = "pydantic-ai"
+    sandbox_mode: str = "isolated"
 
 
 class CampaignConfigEnvelope(BaseModel):
